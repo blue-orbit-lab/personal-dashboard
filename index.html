@@ -22,6 +22,7 @@
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans JP",system-ui,-apple-system,sans-serif;transition:.25s background,.25s color}
     button,input,select{font:inherit}
     button{cursor:pointer}
+    button:disabled{cursor:default;opacity:.58}
     .login{min-height:100dvh;display:grid;place-items:center;padding:24px}
     .login-card{width:min(100%,420px);background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow)}
     .brandline{display:flex;align-items:center;gap:10px;font-weight:800;font-size:28px}
@@ -56,7 +57,7 @@
     .periods .active{background:var(--brand);color:#fff;font-weight:800}
     html[data-theme="dark"] .periods .active{color:#08241b}
     .section{padding:16px;margin:12px 0}
-    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
     .section-title{font-weight:800;font-size:15px}
     .mini-toggle{display:flex;background:var(--surface2);border-radius:999px;padding:3px;gap:3px}
     .mini-toggle button{border:0;background:transparent;color:var(--muted);font-size:11px;padding:7px 11px;border-radius:999px}
@@ -72,6 +73,11 @@
     .name{font-weight:750;font-size:13px}.meta{font-size:11px;color:var(--muted);margin-top:4px}.value{text-align:right;font-weight:800}.small{font-size:11px;color:var(--muted);margin-top:4px}
     .view[hidden]{display:none}
     .asset-price{margin-top:9px;display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center}.asset-price input{padding:9px 10px;font-size:13px}
+    .market-line{margin-top:9px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    .market-copy{font-size:11px;color:var(--muted);line-height:1.5}
+    .mini-action{border:1px solid var(--line);background:var(--surface2);color:var(--brand);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+    .market-status{font-size:11px;color:var(--muted);line-height:1.55;margin:-3px 0 10px}
+    .market-status.live{color:var(--brand);font-weight:700}
     .gain{color:var(--brand)}.loss{color:var(--danger)}
     .empty{text-align:center;color:var(--muted);padding:24px 12px;font-size:12px}
     .panel{padding:16px}
@@ -85,7 +91,7 @@
     .grab{width:46px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}.sheet-head{display:flex;justify-content:space-between;align-items:center}.sheet h2{margin:0;font-size:18px}
     .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);border-radius:14px;padding:4px;margin:16px 0}.seg button{border:0;background:transparent;color:var(--muted);padding:10px 5px;border-radius:10px;font-size:12px}.seg .active{background:var(--surface);color:var(--brand);font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.06)}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.notice{font-size:11px;color:var(--muted);line-height:1.6;margin-top:12px}
-    @media(max-width:430px){.alloc{grid-template-columns:130px 1fr}.donut{width:130px}.hero-value{font-size:30px}}
+    @media(max-width:430px){.alloc{grid-template-columns:130px 1fr}.donut{width:130px}.hero-value{font-size:30px}.section-head{align-items:flex-start}}
     @media(max-width:360px){.grid2{grid-template-columns:1fr}.alloc{grid-template-columns:1fr}.donut{margin:auto}}
   </style>
 </head>
@@ -165,8 +171,9 @@
 
       <section class="view" id="assetsView" hidden>
         <div class="card section">
-          <div class="section-head"><div class="section-title">保有資産</div><button class="ghost" id="refreshPrices">再計算</button></div>
-          <div class="sub" style="margin-bottom:10px">現在価格は手入力です。入力値はこの端末のブラウザに保存されます。</div>
+          <div class="section-head"><div class="section-title">保有資産</div><button class="ghost" id="refreshPrices">市場価格を更新</button></div>
+          <div class="market-status" id="marketStatus">市場価格を確認しています…</div>
+          <div class="sub" style="margin-bottom:10px">米国株・ETFは市場価格とUSD/JPYで円換算。通常時は15分以内のキャッシュを再利用し、夜間の市場モードと手動更新では新しい価格を優先します。</div>
           <div id="holdings"></div>
         </div>
         <div class="card section">
@@ -178,7 +185,7 @@
       <section class="view" id="analysisView" hidden>
         <div class="card analysis-box">
           <h2>AI資産分析</h2>
-          <p>ここは次の開発ステップ用の画面です。現在は、資産配分・口座別残高・手入力した現在価格を使った評価額までを整えています。</p>
+          <p>ここは次の開発ステップ用の画面です。現在は、資産配分・口座別残高・市場価格を使った評価額までを整えています。</p>
           <p>次にニュースDBやAI APIをつなぐと、「株式比率が目標より高い」「特定セクターへの偏りが大きい」などを自動評価できるようにできます。</p>
           <button class="primary" disabled style="opacity:.55">AI分析は準備中</button>
         </div>
@@ -228,7 +235,7 @@
           <div class="field"><label for="bankBalance">現在残高</label><input id="bankBalance" type="number" min="0" step="1" placeholder="500000"></div>
         </div>
         <button class="primary" id="saveButton" type="submit">取引を保存</button>
-        <div class="notice">株価・基準価額のリアルタイム取得はまだ行いません。保有資産画面で現在価格を手入力できます。</div>
+        <div class="notice">米国株・ETFの評価額は、保存後にTwelve Dataの市場価格キャッシュとUSD/JPYを使って自動計算します。日本株・投信など未対応資産は手入力価格を使えます。</div>
       </form>
     </div>
   </div>
@@ -239,14 +246,28 @@
     const SUPABASE_KEY='sb_publishable_Cr_jJE04LYsjxQao1hNyow_iIwXJeop';
     const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
     const ACCOUNTS=['楽天証券','マネックス証券','SBI証券'];
+    const MARKET_BATCH_SIZE=8;
+    const NORMAL_FRESH_MS=15*60*1000;
+    const MARKET_FRESH_MS=60*1000;
+    const CREDIT_WINDOW_MS=61*1000;
     let trades=[],bankBalances=[],mode='stock',masked=false,currentUser=null;
+    let marketPrices=new Map(),marketBusy=false,marketStatusOverride='',apiCreditLog=[];
 
     const yen=n=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0);
+    const usd=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(n)||0);
     const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
     const today=()=>new Date().toISOString().slice(0,10);
     const money=n=>masked?'¥••••••':yen(n);
     const priceKey=t=>`assetflow:price:${t.account}|${t.accountType}|${t.symbol}`;
     const getManualPrice=t=>Number(localStorage.getItem(priceKey(t))||0);
+    const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    const fresh=(row,maxAge)=>!!row?.fetched_at&&(Date.now()-new Date(row.fetched_at).getTime())<=maxAge;
+    const formatTime=value=>value?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value)):'—';
+
+    function isUsMarketWindow(){
+      const hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tokyo',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
+      return hour>=22||hour<6;
+    }
 
     function setTheme(choice){
       localStorage.setItem('assetflow:theme',choice);
@@ -266,11 +287,51 @@
     function holdings(){
       const map=new Map();
       trades.forEach(t=>{
-        const k=[t.account,t.accountType,t.symbol,t.kind].join('|');
-        if(!map.has(k)) map.set(k,{...t,quantity:0,cost:0});
-        const h=map.get(k); h.quantity+=Number(t.quantity)||0; h.cost+=Number(t.value)||0;
+        const k=[t.account,t.accountType,t.assetId||t.symbol,t.kind].join('|');
+        if(!map.has(k)) map.set(k,{...t,quantity:0,cost:0,realized:0});
+        const h=map.get(k),qty=Number(t.quantity)||0,amount=Number(t.value)||0;
+        if(t.transactionType==='sell'){
+          const avg=h.quantity>0?h.cost/h.quantity:0;
+          const sold=Math.min(qty,h.quantity);
+          h.quantity-=sold;
+          h.cost=Math.max(0,h.cost-avg*sold);
+          h.realized+=amount-avg*sold;
+        }else{
+          h.quantity+=qty;
+          h.cost+=amount;
+        }
       });
-      return [...map.values()];
+      return [...map.values()].filter(h=>h.quantity>0.00000001);
+    }
+
+    function marketTicker(h){
+      if(h.kind!=='stock'||h.currency!=='USD')return '';
+      const ticker=String(h.ticker||h.symbol||'').trim().toUpperCase();
+      return /^[A-Z0-9.^:/-]{1,20}$/.test(ticker)?ticker:'';
+    }
+
+    function marketRow(symbol){return marketPrices.get(String(symbol||'').trim().toUpperCase())||null}
+    function usdJpy(){return Number(marketRow('USD/JPY')?.price)||0}
+
+    function valuation(h){
+      const ticker=marketTicker(h),row=ticker?marketRow(ticker):null,fx=usdJpy();
+      if(row&&Number(row.price)>0&&fx>0){
+        return {value:Number(row.price)*h.quantity*fx,source:'market',price:Number(row.price),fx,row};
+      }
+      const manual=getManualPrice(h);
+      if(manual>0)return {value:manual*h.quantity,source:'manual',price:manual,fx:1,row:null};
+      return {value:h.cost,source:'cost',price:0,fx:1,row:null};
+    }
+
+    function marketCandidates(){
+      const byTicker=new Map();
+      holdings().forEach(h=>{
+        const ticker=marketTicker(h);if(!ticker)return;
+        const weight=valuation(h).value||h.cost||0;
+        if(!byTicker.has(ticker))byTicker.set(ticker,{ticker,weight:0});
+        byTicker.get(ticker).weight+=weight;
+      });
+      return [...byTicker.values()].sort((a,b)=>b.weight-a.weight);
     }
 
     function totalsByAccount(){
@@ -278,29 +339,49 @@
       return ACCOUNTS.map(name=>{
         const items=hs.filter(h=>h.account===name);
         const cost=items.reduce((s,h)=>s+h.cost,0);
-        const value=items.reduce((s,h)=>{
-          const p=getManualPrice(h);
-          return s+(p>0?p*h.quantity:h.cost);
-        },0);
+        const value=items.reduce((s,h)=>s+valuation(h).value,0);
         return {name,cost,value};
       });
     }
 
+    function setMarketStatus(text){marketStatusOverride=text;renderMarketStatus()}
+
+    function renderMarketStatus(){
+      const el=document.getElementById('marketStatus'),button=document.getElementById('refreshPrices');
+      if(!el||!button)return;
+      button.disabled=marketBusy;
+      button.textContent=marketBusy?'更新中…':'市場価格を更新';
+      el.classList.toggle('live',isUsMarketWindow());
+      if(marketStatusOverride){el.textContent=marketStatusOverride;return}
+      const candidates=marketCandidates();
+      if(!candidates.length){el.textContent='自動更新対象の米国株・ETFはまだありません。';return}
+      const rows=candidates.map(c=>marketRow(c.ticker)).filter(Boolean);
+      const covered=rows.length;
+      const times=rows.map(r=>new Date(r.fetched_at).getTime()).filter(Number.isFinite);
+      const oldest=times.length?new Date(Math.min(...times)):null;
+      const modeText=isUsMarketWindow()?'・米国市場モード':'';
+      const fxText=marketRow('USD/JPY')?'・USD/JPY取得済み':'・USD/JPY未取得';
+      el.textContent=`市場価格 ${covered}/${candidates.length}銘柄${fxText}${oldest?'・最古更新 '+formatTime(oldest):''}${modeText}`;
+    }
+
     function render(){
-      const hs=holdings(), grouped=totalsByAccount();
+      const hs=holdings(),grouped=totalsByAccount();
       const bankTotal=bankBalances.reduce((s,b)=>s+b.balance,0);
       const invTotal=grouped.reduce((s,a)=>s+a.value,0);
       const total=invTotal+bankTotal;
+      const candidates=marketCandidates();
+      const marketEligible=candidates.length;
+      const marketCovered=candidates.filter(c=>marketRow(c.ticker)&&marketRow('USD/JPY')).length;
       document.getElementById('totalValue').textContent=money(total);
       document.getElementById('donutTotal').textContent=money(total);
       document.getElementById('invPct').textContent=total?Math.round(invTotal/total*100)+'%':'0%';
       document.getElementById('cashPct').textContent=total?Math.round(bankTotal/total*100)+'%':'0%';
+      document.getElementById('deltaText').textContent=marketEligible?`市場価格 ${marketCovered}/${marketEligible}銘柄`:'取得額ベース';
 
-      const max=Math.max(...grouped.map(a=>a.value),1);
       document.getElementById('accounts').innerHTML=grouped.map(a=>`
         <div class="account-row">
           <div><div class="name">${a.name}</div><div class="meta">NISA・特定・一般を合算</div></div>
-          <div><div class="value">${money(a.value)}</div><div class="small">${a.value===a.cost?'取得額ベース':'手入力価格で評価'}</div></div>
+          <div><div class="value">${money(a.value)}</div><div class="small">${Math.abs(a.value-a.cost)<1?'取得額ベース':'現在評価額'}</div></div>
         </div>`).join('');
 
       document.getElementById('banks').innerHTML=bankBalances.length?bankBalances.map(b=>`
@@ -310,32 +391,42 @@
         </div>`).join(''):'<div class="empty">預金残高はまだありません</div>';
 
       document.getElementById('holdings').innerHTML=hs.length?hs.map((h,i)=>{
-        const p=getManualPrice(h), value=p>0?p*h.quantity:h.cost, pl=value-h.cost, rate=h.cost?pl/h.cost*100:0;
-        const unit=h.kind==='fund'?'口':'株';
+        const v=valuation(h),pl=v.value-h.cost,rate=h.cost?pl/h.cost*100:0;
+        const unit=h.kind==='fund'?'口':'株',ticker=marketTicker(h);
+        let priceUi='';
+        if(ticker){
+          const row=marketRow(ticker),fx=usdJpy();
+          const copy=row&&fx>0?`${ticker} ${usd(row.price)} / USDJPY ${fx.toFixed(2)}・${formatTime(row.fetched_at)}`:`${ticker} 市場価格未取得`;
+          priceUi=`<div class="market-line"><span class="market-copy">${copy}</span><button class="mini-action one-refresh" data-ticker="${esc(ticker)}" ${marketBusy?'disabled':''}>この銘柄を更新</button></div>`;
+          if(!row||fx<=0){
+            const p=getManualPrice(h);
+            priceUi+=`<div class="asset-price"><span class="small">未取得時の手動価格（円）</span><input class="manual-price" data-index="${i}" type="number" min="0" step="any" value="${p||''}" placeholder="手入力"></div>`;
+          }
+        }else{
+          const p=getManualPrice(h);
+          priceUi=`<div class="asset-price"><span class="small">現在価格（円換算・手入力）</span><input class="manual-price" data-index="${i}" type="number" min="0" step="any" value="${p||''}" placeholder="手入力"></div>`;
+        }
         return `<div class="asset-row">
           <div>
             <div class="name">${esc(h.symbol)}</div>
             <div class="meta">${esc(h.account)}・${esc(h.accountType)}・${Number(h.quantity).toLocaleString()}${unit}</div>
-            <div class="asset-price">
-              <span class="small">現在価格（円換算）</span>
-              <input class="manual-price" data-index="${i}" type="number" min="0" step="any" value="${p||''}" placeholder="手入力">
-            </div>
+            ${priceUi}
           </div>
           <div>
-            <div class="value">${money(value)}</div>
-            <div class="small ${pl>=0?'gain':'loss'}">${p>0?(pl>=0?'+':'')+yen(pl)+' / '+(rate>=0?'+':'')+rate.toFixed(1)+'%':'取得額ベース'}</div>
+            <div class="value">${money(v.value)}</div>
+            <div class="small ${pl>=0?'gain':'loss'}">${v.source!=='cost'?(pl>=0?'+':'')+yen(pl)+' / '+(rate>=0?'+':'')+rate.toFixed(1)+'%':'取得額ベース'}</div>
           </div>
         </div>`;
       }).join(''):'<div class="empty">取引を追加すると保有資産が表示されます</div>';
 
       document.querySelectorAll('.manual-price').forEach(inp=>{
         inp.onchange=()=>{
-          const h=hs[Number(inp.dataset.index)];
-          const v=Number(inp.value)||0;
-          if(v>0)localStorage.setItem(priceKey(h),String(v)); else localStorage.removeItem(priceKey(h));
+          const h=hs[Number(inp.dataset.index)],v=Number(inp.value)||0;
+          if(v>0)localStorage.setItem(priceKey(h),String(v));else localStorage.removeItem(priceKey(h));
           render();
         };
       });
+      document.querySelectorAll('.one-refresh').forEach(btn=>btn.onclick=()=>refreshOneTicker(btn.dataset.ticker));
 
       const rows=trades.slice().reverse().map(t=>`
         <div class="tx">
@@ -343,6 +434,100 @@
           <div><div class="value">${money(t.value)}</div><div class="small">${t.kind==='fund'?Number(t.quantity).toLocaleString()+'口':Number(t.quantity)+'株'}</div></div>
         </div>`).join('');
       document.getElementById('history').innerHTML=rows||'<div class="empty">取引はまだありません</div>';
+      renderMarketStatus();
+    }
+
+    function applyMarketRows(rows){
+      (rows||[]).forEach(row=>{
+        if(!row?.symbol)return;
+        marketPrices.set(String(row.symbol).toUpperCase(),{...row,price:Number(row.price)});
+      });
+    }
+
+    async function loadMarketCache(){
+      const {data,error}=await db.functions.invoke('market-prices',{body:{action:'cache'}});
+      if(error)throw error;
+      applyMarketRows(data?.prices||[]);
+      render();
+    }
+
+    async function reserveCredits(credits){
+      while(true){
+        const now=Date.now();
+        apiCreditLog=apiCreditLog.filter(x=>now-x.at<CREDIT_WINDOW_MS);
+        const used=apiCreditLog.reduce((s,x)=>s+x.credits,0);
+        if(used+credits<=8){apiCreditLog.push({at:now,credits});return}
+        const oldest=Math.min(...apiCreditLog.map(x=>x.at));
+        const wait=Math.max(1000,oldest+CREDIT_WINDOW_MS-now+250);
+        setMarketStatus(`API制限を守るため次の価格取得まで約${Math.ceil(wait/1000)}秒待機中…`);
+        await sleep(wait);
+      }
+    }
+
+    async function invokePriceBatch(symbols){
+      await reserveCredits(symbols.length);
+      const {data,error}=await db.functions.invoke('market-prices',{body:{symbols}});
+      if(error)throw error;
+      if(!data?.ok)throw new Error(data?.error?.message||'市場価格の取得に失敗しました');
+      applyMarketRows(data.prices||[]);
+      return data.prices||[];
+    }
+
+    async function refreshPortfolioPrices({force=false,reason='manual'}={}){
+      if(marketBusy){setMarketStatus('市場価格を更新中です。完了までそのままお待ちください。');return}
+      const candidates=marketCandidates();
+      if(!candidates.length){marketStatusOverride='';renderMarketStatus();return}
+      const freshness=isUsMarketWindow()?MARKET_FRESH_MS:NORMAL_FRESH_MS;
+      const targets=force?candidates:candidates.filter(c=>!fresh(marketRow(c.ticker),freshness));
+      const fxNeeds=force||!fresh(marketRow('USD/JPY'),freshness);
+      let symbols=targets.map(c=>c.ticker);
+      if(fxNeeds)symbols=['USD/JPY',...symbols];
+      if(!symbols.length){marketStatusOverride='';renderMarketStatus();return}
+
+      marketBusy=true;
+      let doneTickers=0;
+      const totalTickers=targets.length;
+      try{
+        for(let i=0;i<symbols.length;i+=MARKET_BATCH_SIZE){
+          const batch=symbols.slice(i,i+MARKET_BATCH_SIZE);
+          const nextDone=Math.min(totalTickers,doneTickers+batch.filter(s=>s!=='USD/JPY').length);
+          setMarketStatus(`${reason==='startup'?'起動時':'市場'}更新中 ${nextDone}/${totalTickers}銘柄${batch.includes('USD/JPY')?'・為替も更新':''}`);
+          await invokePriceBatch(batch);
+          doneTickers=nextDone;
+          render();
+        }
+      }catch(error){
+        console.error(error);
+        setMarketStatus('市場価格の更新に失敗しました。少し待ってからもう一度お試しください。');
+        await sleep(1800);
+      }finally{
+        marketBusy=false;marketStatusOverride='';render();
+      }
+    }
+
+    async function refreshOneTicker(ticker){
+      ticker=String(ticker||'').trim().toUpperCase();
+      if(!ticker)return;
+      if(marketBusy){setMarketStatus('全体の市場価格を更新中です。完了後に銘柄更新できます。');return}
+      marketBusy=true;
+      try{
+        setMarketStatus(`${ticker} を最新価格に更新中…`);
+        await invokePriceBatch(['USD/JPY',ticker]);
+        render();
+      }catch(error){
+        console.error(error);
+        setMarketStatus(`${ticker} の更新に失敗しました。少し待ってから再度お試しください。`);
+        await sleep(1800);
+      }finally{
+        marketBusy=false;marketStatusOverride='';render();
+      }
+    }
+
+    async function maybeRefreshOnStartup(){
+      const candidates=marketCandidates();if(!candidates.length)return;
+      const freshness=isUsMarketWindow()?MARKET_FRESH_MS:NORMAL_FRESH_MS;
+      const stale=candidates.some(c=>!fresh(marketRow(c.ticker),freshness))||!fresh(marketRow('USD/JPY'),freshness);
+      if(stale)refreshPortfolioPrices({force:false,reason:'startup'});
     }
 
     function go(id){
@@ -351,7 +536,7 @@
     }
     document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
     document.getElementById('mask').onclick=()=>{masked=!masked;render()};
-    document.getElementById('refreshPrices').onclick=render;
+    document.getElementById('refreshPrices').onclick=()=>refreshPortfolioPrices({force:true,reason:'manual'});
 
     const sheet=document.getElementById('sheetWrap');
     const openSheet=(nextMode='stock')=>{setMode(nextMode);sheet.hidden=false};
@@ -387,11 +572,15 @@
     async function loadCloud(){
       syncStatus.textContent='クラウドから読込中…';
       const [txResult,bankResult]=await Promise.all([
-        db.from('transactions').select('id,traded_at,quantity,unit_price,amount,accounts(institution,account_type),assets(name,asset_type)').order('traded_at'),
+        db.from('transactions').select('id,traded_at,quantity,unit_price,amount,transaction_type,accounts(institution,account_type),assets(id,name,ticker,asset_type,currency)').order('traded_at'),
         db.from('balance_snapshots').select('id,balance,recorded_at,accounts(institution,account_type)').order('recorded_at',{ascending:false})
       ]);
       if(txResult.error)throw txResult.error;if(bankResult.error)throw bankResult.error;
-      trades=txResult.data.map(t=>({id:t.id,kind:t.assets.asset_type,account:t.accounts.institution,accountType:t.accounts.account_type,date:t.traded_at,symbol:t.assets.name,quantity:Number(t.quantity),value:Number(t.amount)}));
+      trades=txResult.data.map(t=>({
+        id:t.id,assetId:t.assets?.id,kind:t.assets?.asset_type,account:t.accounts?.institution,accountType:t.accounts?.account_type,
+        date:t.traded_at,symbol:t.assets?.name||'',ticker:t.assets?.ticker||t.assets?.name||'',currency:t.assets?.currency||'JPY',
+        quantity:Number(t.quantity),value:Number(t.amount),transactionType:t.transaction_type||'buy'
+      }));
       const seen=new Set();
       bankBalances=bankResult.data.filter(b=>{const k=b.accounts.institution+'|'+b.accounts.account_type;if(seen.has(k))return false;seen.add(k);return true})
         .map(b=>({id:b.id,name:b.accounts.institution,type:b.accounts.account_type,balance:Number(b.balance),date:b.recorded_at}));
@@ -410,13 +599,20 @@
           const sym=symbol.value.trim(),date=tradeDate.value,acc=account.value,accType=accountType.value;
           if(!sym||!date)throw new Error('銘柄と約定日を入力してください');
           let quantityV,valueV,unitPriceV,currencyV='JPY',feeV=0;
-          if(mode==='fund'){quantityV=calcFund();valueV=+amount.value;unitPriceV=+nav.value/10000;if(!quantityV)throw new Error('買付金額と約定基準価額を入力してください');}
-          else{quantityV=+quantity.value;unitPriceV=+unitPrice.value;currencyV=currency.value;feeV=+fees.value;valueV=quantityV*unitPriceV*(+fx.value)+feeV;if(!quantityV||!valueV)throw new Error('数量と約定単価を入力してください');}
+          if(mode==='fund'){
+            quantityV=calcFund();valueV=+amount.value;unitPriceV=+nav.value/10000;
+            if(!quantityV)throw new Error('買付金額と約定基準価額を入力してください');
+          }else{
+            quantityV=+quantity.value;unitPriceV=+unitPrice.value;currencyV=currency.value;feeV=+fees.value;
+            valueV=quantityV*unitPriceV*(+fx.value)+feeV;
+            if(!quantityV||!valueV)throw new Error('数量と約定単価を入力してください');
+          }
           const accountId=await getAccount(acc,accType);const assetId=await getAsset(sym,mode,currencyV);
           const {error}=await db.from('transactions').insert({account_id:accountId,asset_id:assetId,transaction_type:'buy',traded_at:date,quantity:quantityV,unit_price:unitPriceV,amount:valueV,fee:feeV});if(error)throw error;
         }
         e.target.reset();tradeDate.value=today();bankDate.value=today();bankName.value='三菱UFJ銀行';fx.value=1;
         setMode(mode);await loadCloud();sheet.hidden=true;go('homeView');
+        try{await loadMarketCache();maybeRefreshOnStartup()}catch(error){console.warn('market cache',error)}
       }catch(error){alert('保存できませんでした：'+error.message);syncStatus.textContent='同期エラー';}
       finally{saveButton.disabled=false}
     };
@@ -429,8 +625,15 @@
     signOut.onclick=()=>db.auth.signOut();
     async function showSession(session){
       currentUser=session?.user||null;loginView.hidden=!!currentUser;app.hidden=!currentUser;nav.hidden=!currentUser;
-      if(currentUser){try{await loadCloud()}catch(error){syncStatus.textContent='読込エラー：'+error.message}}
-      else{trades=[];bankBalances=[];loginButton.disabled=false}
+      if(currentUser){
+        try{
+          await loadCloud();
+          try{await loadMarketCache()}catch(error){console.warn('market cache',error);marketStatusOverride='市場価格キャッシュを読み込めませんでした。';renderMarketStatus()}
+          maybeRefreshOnStartup();
+        }catch(error){syncStatus.textContent='読込エラー：'+error.message}
+      }else{
+        trades=[];bankBalances=[];marketPrices=new Map();marketBusy=false;marketStatusOverride='';loginButton.disabled=false;
+      }
     }
     db.auth.onAuthStateChange((_event,session)=>setTimeout(()=>showSession(session),0));
     db.auth.getSession().then(({data})=>showSession(data.session));
