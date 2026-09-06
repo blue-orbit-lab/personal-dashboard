@@ -3,71 +3,236 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#10261f">
+  <meta name="theme-color" content="#f6f7f4" id="themeColor">
   <title>Asset Flow</title>
   <style>
-    :root{color-scheme:light;--ink:#17231f;--muted:#68756f;--line:#dfe7e3;--bg:#f3f6f4;--card:#fff;--brand:#173e31;--brand2:#d9ede4;--red:#b44848;--green:#287556;--shadow:0 10px 32px rgba(22,51,40,.08)}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans JP",system-ui,-apple-system,sans-serif}.app{max-width:520px;margin:auto;min-height:100dvh;padding:env(safe-area-inset-top) 16px calc(92px + env(safe-area-inset-bottom))}header{display:flex;align-items:center;justify-content:space-between;padding:20px 3px 14px}h1{font-size:20px;margin:0;font-weight:650}.sub{color:var(--muted);font-size:12px;margin-top:4px}.icon-btn,.ghost,.primary,.tab{font:inherit;cursor:pointer}.icon-btn{border:0;background:transparent;font-size:19px;padding:10px;border-radius:12px}.hero{background:var(--brand);color:#fff;padding:22px;border-radius:24px;box-shadow:var(--shadow)}.hero-label{font-size:12px;opacity:.75}.hero-value{font-size:32px;letter-spacing:-.04em;margin:8px 0;font-weight:650}.hero-meta{font-size:12px;opacity:.82}.section-title{display:flex;align-items:center;justify-content:space-between;margin:24px 3px 11px}.section-title h2{font-size:15px;margin:0}.ghost{border:0;background:transparent;color:var(--green);padding:7px;font-size:12px}.accounts{display:grid;gap:10px}.account{background:var(--card);border-radius:18px;padding:16px;box-shadow:0 3px 12px rgba(27,47,39,.045)}.account-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.account-name{font-size:14px;font-weight:650}.account-type{font-size:11px;color:var(--muted);margin-top:3px}.account-value{font-size:17px;font-weight:650;text-align:right}.account-pl{font-size:11px;color:var(--muted);text-align:right;margin-top:3px}.meter{height:5px;background:#e9efec;border-radius:999px;margin-top:13px;overflow:hidden}.meter span{display:block;height:100%;background:var(--green);border-radius:inherit}.empty{background:var(--card);border-radius:18px;padding:28px 18px;text-align:center;color:var(--muted);font-size:13px}.fab{position:fixed;bottom:calc(78px + env(safe-area-inset-bottom));right:max(20px,calc((100vw - 500px)/2));border:0;border-radius:999px;background:var(--brand);color:#fff;padding:14px 18px;font-weight:650;box-shadow:0 8px 24px rgba(16,49,37,.24)}nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,520px);display:grid;grid-template-columns:repeat(3,1fr);background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:7px 10px calc(8px + env(safe-area-inset-bottom));z-index:4}.tab{border:0;background:transparent;color:var(--muted);padding:9px;font-size:11px;border-radius:12px}.tab.active{color:var(--brand);background:var(--brand2);font-weight:650}.view[hidden]{display:none}.panel{background:var(--card);border-radius:20px;padding:18px}.panel h2{font-size:17px;margin:0 0 17px}.field{display:grid;gap:6px;margin-bottom:14px}.field label{font-size:12px;color:var(--muted)}input,select{width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);padding:13px;font:inherit;font-size:16px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.segmented{display:grid;grid-template-columns:1fr 1fr;background:#edf2ef;padding:4px;border-radius:13px;margin-bottom:16px}.segmented button{border:0;background:transparent;padding:10px;border-radius:10px;font:inherit;font-size:13px}.segmented button.active{background:#fff;box-shadow:0 2px 7px rgba(0,0,0,.07);font-weight:650}.primary{width:100%;border:0;border-radius:13px;background:var(--brand);color:#fff;padding:14px;font-weight:650;margin-top:4px}.primary:disabled{opacity:.55;cursor:wait}.calc{background:var(--brand2);border-radius:15px;padding:14px;margin:4px 0 15px}.calc-row{display:flex;justify-content:space-between;gap:12px;font-size:13px}.calc-row+.calc-row{margin-top:8px}.calc strong{font-size:15px}.notice{font-size:11px;color:var(--muted);line-height:1.6;margin:12px 2px}.tx{display:grid;grid-template-columns:1fr auto;gap:10px;padding:13px 3px;border-bottom:1px solid var(--line)}.tx:last-child{border-bottom:0}.tx-name{font-size:13px;font-weight:650}.tx-meta{font-size:11px;color:var(--muted);margin-top:4px}.tx-value{text-align:right;font-size:13px;font-weight:650}.tx-units{font-size:11px;color:var(--muted);margin-top:4px}.prototype{background:var(--brand2);color:var(--brand);border-radius:13px;padding:10px 12px;font-size:11px;line-height:1.5;margin-bottom:14px}.login{max-width:420px;margin:0 auto;min-height:100dvh;display:grid;place-items:center;padding:24px}.login-card{width:100%;background:#fff;padding:26px;border-radius:24px;box-shadow:var(--shadow)}.login-card h1{font-size:24px;margin-bottom:5px}.login-card .sub{margin-bottom:24px}.error{color:var(--red);font-size:12px;line-height:1.5;min-height:18px;margin-top:10px}.header-actions{display:flex;align-items:center}.signout{font-size:11px}.sync{font-size:11px;color:var(--muted);text-align:center;margin:8px}@media(max-width:360px){.grid2{grid-template-columns:1fr}.hero-value{font-size:28px}}
+    :root{
+      color-scheme:light;
+      --bg:#f6f7f4;--surface:#ffffff;--surface2:#f1f4f1;--ink:#10231d;--muted:#6c7a75;
+      --line:#dde6e1;--brand:#0f6b52;--brand2:#dff3eb;--accent:#57d9b0;--danger:#b84f52;
+      --shadow:0 10px 35px rgba(21,52,42,.08);--nav:rgba(255,255,255,.92);
+    }
+    html[data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#081720;--surface:#10252e;--surface2:#0c2028;--ink:#edf8f4;--muted:#9bb0a9;
+      --line:#28424a;--brand:#72ecc4;--brand2:#103f35;--accent:#72ecc4;--danger:#ff8b8b;
+      --shadow:0 14px 40px rgba(0,0,0,.28);--nav:rgba(8,23,32,.92);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans JP",system-ui,-apple-system,sans-serif;transition:.25s background,.25s color}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .login{min-height:100dvh;display:grid;place-items:center;padding:24px}
+    .login-card{width:min(100%,420px);background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow)}
+    .brandline{display:flex;align-items:center;gap:10px;font-weight:800;font-size:28px}
+    .leaf{width:28px;height:28px;border-radius:70% 15% 70% 15%;background:linear-gradient(145deg,var(--brand),var(--accent));transform:rotate(-18deg);position:relative}
+    .leaf:after{content:"";position:absolute;left:7px;top:7px;width:16px;height:2px;background:#fff;border-radius:99px;transform:rotate(-35deg);opacity:.9}
+    .sub{font-size:12px;color:var(--muted);margin-top:5px}
+    .field{display:grid;gap:7px;margin:14px 0}
+    .field label{font-size:12px;color:var(--muted)}
+    input,select{width:100%;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--ink);padding:13px 14px;font-size:16px;outline:none}
+    input:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+    .primary{width:100%;border:0;border-radius:14px;background:var(--brand);color:#fff;padding:14px;font-weight:800}
+    html[data-theme="dark"] .primary{color:#08241b}
+    .error{min-height:18px;color:var(--danger);font-size:12px;margin-top:10px}
+    .app{max-width:560px;margin:auto;min-height:100dvh;padding:env(safe-area-inset-top) 14px calc(92px + env(safe-area-inset-bottom))}
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 2px 10px;position:sticky;top:0;background:linear-gradient(var(--bg) 70%,transparent);z-index:5}
+    .brand-small{display:flex;align-items:center;gap:9px;font-size:20px;font-weight:800}
+    .brand-small .leaf{width:24px;height:24px}
+    .head-actions{display:flex;gap:6px;align-items:center}
+    .icon-btn,.ghost{border:0;background:transparent;color:var(--ink);border-radius:12px;padding:9px}
+    .themebar{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);padding:4px;border:1px solid var(--line);border-radius:999px;margin:5px 0 14px}
+    .themebar button{border:0;background:transparent;color:var(--muted);padding:9px;border-radius:999px;font-size:12px}
+    .themebar button.active{background:var(--surface);color:var(--brand);font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+    .hero{padding:20px;margin-bottom:12px}
+    .eyebrow{font-size:13px;font-weight:700}
+    .hero-value{font-size:34px;font-weight:850;letter-spacing:-.045em;margin-top:7px}
+    .delta{display:inline-flex;margin-top:8px;background:var(--brand2);color:var(--brand);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
+    .spark{height:88px;margin-top:12px;position:relative;overflow:hidden}
+    .spark svg{width:100%;height:100%}
+    .periods{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--line);padding-top:8px}
+    .periods button{border:0;background:transparent;color:var(--muted);padding:7px;border-radius:999px;font-size:11px}
+    .periods .active{background:var(--brand);color:#fff;font-weight:800}
+    html[data-theme="dark"] .periods .active{color:#08241b}
+    .section{padding:16px;margin:12px 0}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .section-title{font-weight:800;font-size:15px}
+    .mini-toggle{display:flex;background:var(--surface2);border-radius:999px;padding:3px;gap:3px}
+    .mini-toggle button{border:0;background:transparent;color:var(--muted);font-size:11px;padding:7px 11px;border-radius:999px}
+    .mini-toggle .active{background:var(--surface);color:var(--brand);font-weight:800;border:1px solid var(--line)}
+    .alloc{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center}
+    .donut{width:150px;aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--brand) 0 55%,#4da4e8 55% 70%,#89c8f5 70% 85%,#efc852 85% 93%,#a992f4 93%);display:grid;place-items:center}
+    .donut:after{content:"";width:88px;aspect-ratio:1;background:var(--surface);border-radius:50%;position:absolute}
+    .donut{position:relative}.donut-label{position:relative;z-index:1;text-align:center;font-weight:800;font-size:12px}
+    .legend{display:grid;gap:9px;font-size:12px}.legend-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}.dot{width:10px;height:10px;border-radius:50%}
+    .ai{padding:16px;background:linear-gradient(135deg,var(--surface),color-mix(in srgb,var(--brand2) 70%,var(--surface)));border:1px solid color-mix(in srgb,var(--brand) 35%,var(--line))}
+    .ai-title{display:flex;gap:10px;align-items:center;font-weight:850}.ai-sub{font-size:12px;color:var(--muted);margin:4px 0 12px 30px}
+    .accounts{display:grid;gap:8px}.account-row,.asset-row,.tx{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.account-row:last-child,.asset-row:last-child,.tx:last-child{border-bottom:0}
+    .name{font-weight:750;font-size:13px}.meta{font-size:11px;color:var(--muted);margin-top:4px}.value{text-align:right;font-weight:800}.small{font-size:11px;color:var(--muted);margin-top:4px}
+    .view[hidden]{display:none}
+    .asset-price{margin-top:9px;display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center}.asset-price input{padding:9px 10px;font-size:13px}
+    .gain{color:var(--brand)}.loss{color:var(--danger)}
+    .empty{text-align:center;color:var(--muted);padding:24px 12px;font-size:12px}
+    .panel{padding:16px}
+    .sync{font-size:11px;color:var(--muted);text-align:center;margin:6px 0 10px}
+    .analysis-box{padding:18px}.analysis-box h2{margin:0 0 8px;font-size:18px}.analysis-box p{font-size:13px;line-height:1.7;color:var(--muted)}
+    .fab{position:fixed;right:max(18px,calc((100vw - 540px)/2));bottom:calc(84px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--brand);color:#fff;font-size:30px;box-shadow:0 12px 28px rgba(14,96,74,.28);z-index:7}
+    html[data-theme="dark"] .fab{color:#08241b}
+    nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,560px);display:grid;grid-template-columns:repeat(4,1fr);background:var(--nav);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:7px 10px calc(8px + env(safe-area-inset-bottom));z-index:6}
+    .tab{border:0;background:transparent;color:var(--muted);padding:8px 4px;font-size:10px;border-radius:12px}.tab .ico{display:block;font-size:18px;line-height:1.2}.tab.active{color:var(--brand);font-weight:800}
+    .sheet-wrap{position:fixed;inset:0;background:rgba(0,0,0,.34);display:grid;align-items:end;z-index:20}.sheet-wrap[hidden]{display:none}.sheet{width:min(100%,560px);max-height:88dvh;overflow:auto;margin:auto;background:var(--surface);border-radius:26px 26px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -20px 50px rgba(0,0,0,.2)}
+    .grab{width:46px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}.sheet-head{display:flex;justify-content:space-between;align-items:center}.sheet h2{margin:0;font-size:18px}
+    .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);border-radius:14px;padding:4px;margin:16px 0}.seg button{border:0;background:transparent;color:var(--muted);padding:10px 5px;border-radius:10px;font-size:12px}.seg .active{background:var(--surface);color:var(--brand);font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.notice{font-size:11px;color:var(--muted);line-height:1.6;margin-top:12px}
+    @media(max-width:430px){.alloc{grid-template-columns:130px 1fr}.donut{width:130px}.hero-value{font-size:30px}}
+    @media(max-width:360px){.grid2{grid-template-columns:1fr}.alloc{grid-template-columns:1fr}.donut{margin:auto}}
   </style>
 </head>
 <body>
   <section class="login" id="loginView">
     <form class="login-card" id="loginForm">
-      <h1>Asset Flow</h1><div class="sub">自分専用の資産管理</div>
+      <div class="brandline"><span class="leaf"></span><span>Asset Flow</span></div>
+      <div class="sub">ライトも、ダークも。自分らしく。</div>
+      <div style="height:10px"></div>
       <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" autocomplete="username" required></div>
       <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
       <button class="primary" id="loginButton" type="submit">ログイン</button>
       <div class="error" id="loginError"></div>
     </form>
   </section>
+
   <div class="app" id="app" hidden>
-    <header><div><h1>Asset Flow</h1><div class="sub">資産を、口座ごとに見渡す</div></div><div class="header-actions"><button class="ghost signout" id="signOut">ログアウト</button><button class="icon-btn" id="mask" aria-label="金額を隠す">◉</button></div></header>
-    <div class="prototype">ログイン中の本人データだけを暗号化通信でクラウド保存します。</div><div class="sync" id="syncStatus"></div>
+    <header>
+      <div class="brand-small"><span class="leaf"></span><span>Asset Flow</span></div>
+      <div class="head-actions">
+        <button class="icon-btn" id="mask" aria-label="金額を隠す">◉</button>
+        <button class="icon-btn" id="quickTheme" aria-label="テーマ切替">☀️</button>
+        <button class="ghost" id="signOut">退出</button>
+      </div>
+    </header>
+
+    <div class="themebar">
+      <button data-theme-choice="light">ライト</button>
+      <button data-theme-choice="dark">ダーク</button>
+      <button data-theme-choice="auto">自動</button>
+    </div>
+    <div class="sync" id="syncStatus"></div>
+
     <main>
       <section class="view" id="homeView">
-        <div class="hero"><div class="hero-label">総資産評価額</div><div class="hero-value money" id="totalValue">¥0</div><div class="hero-meta">預金と3つの証券口座を合算</div></div>
-        <div class="section-title"><h2>証券口座別</h2><button class="ghost" data-go="addView">取引を追加</button></div>
-        <div class="accounts" id="accounts"></div>
-        <div class="section-title"><h2>銀行預金</h2><button class="ghost" id="addBankShortcut">残高を入力</button></div>
-        <div class="accounts" id="banks"></div>
-        <div class="section-title"><h2>最近の取引</h2></div><div class="panel" id="recent"></div>
-      </section>
+        <div class="card hero">
+          <div class="eyebrow">総資産</div>
+          <div class="hero-value" id="totalValue">¥0</div>
+          <div class="delta" id="deltaText">取得額ベース</div>
+          <div class="spark">
+            <svg viewBox="0 0 360 90" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".28"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
+              <path d="M0 73 C22 68,29 74,45 66 S72 55,88 61 S110 57,123 55 S149 51,160 56 S179 52,190 44 S212 35,228 42 S247 45,261 36 S281 46,293 35 S315 30,329 16 S345 12,360 4 L360 90 L0 90 Z" fill="url(#g)" style="color:var(--brand)"/>
+              <path d="M0 73 C22 68,29 74,45 66 S72 55,88 61 S110 57,123 55 S149 51,160 56 S179 52,190 44 S212 35,228 42 S247 45,261 36 S281 46,293 35 S315 30,329 16 S345 12,360 4" fill="none" stroke="var(--brand)" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="periods"><button>1か月</button><button class="active">1年</button><button>全期間</button></div>
+        </div>
 
-      <section class="view" id="addView" hidden>
-        <div class="panel">
-          <h2>取引を追加</h2>
-          <div class="segmented" style="grid-template-columns:repeat(3,1fr)"><button id="stockMode" class="active">株式・ETF</button><button id="fundMode">投資信託</button><button id="bankMode">預金残高</button></div>
-          <form id="tradeForm">
-            <div id="investmentFields">
-              <div class="field"><label for="account">証券口座</label><select id="account"><option>楽天証券</option><option>マネックス証券</option><option>SBI証券</option></select></div>
-              <div class="grid2"><div class="field"><label for="accountType">口座区分</label><select id="accountType"><option>NISA</option><option>特定口座</option><option>一般口座</option></select></div><div class="field"><label for="tradeDate">約定日</label><input id="tradeDate" type="date"></div></div>
-              <div class="field"><label for="symbol">ティッカー／ファンド名</label><input id="symbol" placeholder="例：AAPL / eMAXIS Slim 全世界株式"></div>
-              <div id="stockFields">
-              <div class="grid2"><div class="field"><label for="quantity">数量</label><input id="quantity" type="number" min="0" step="any" placeholder="10"></div><div class="field"><label for="unitPrice">約定単価</label><input id="unitPrice" type="number" min="0" step="any" placeholder="150"></div></div>
-              <div class="grid2"><div class="field"><label for="currency">通貨</label><select id="currency"><option value="JPY">円</option><option value="USD">米ドル</option></select></div><div class="field"><label for="fx">約定時為替</label><input id="fx" type="number" min="0" step="any" value="1"></div></div>
-              <div class="field"><label for="fees">手数料・税</label><input id="fees" type="number" min="0" step="any" value="0"></div>
-              </div>
-              <div id="fundFields" hidden>
-              <div class="grid2"><div class="field"><label for="amount">積立・買付金額</label><input id="amount" type="number" min="0" step="1" placeholder="30000"></div><div class="field"><label for="nav">約定基準価額（1万口）</label><input id="nav" type="number" min="0" step="1" placeholder="15000"></div></div>
-              <div class="calc"><div class="calc-row"><span>今回増える口数</span><strong id="calcUnits">—</strong></div><div class="calc-row"><span>約定金額</span><span id="calcAmount">—</span></div></div>
-              </div>
+        <div class="card section">
+          <div class="section-head">
+            <div class="section-title">資産配分</div>
+            <div class="mini-toggle"><button class="active">資産別</button><button>口座別</button></div>
+          </div>
+          <div class="alloc">
+            <div class="donut"><div class="donut-label" id="donutTotal">¥0</div></div>
+            <div class="legend">
+              <div class="legend-row"><span class="dot" style="background:var(--brand)"></span><span>証券資産</span><b id="invPct">0%</b></div>
+              <div class="legend-row"><span class="dot" style="background:#89c8f5"></span><span>現金</span><b id="cashPct">0%</b></div>
+              <div class="legend-row"><span class="dot" style="background:#efc852"></span><span>金</span><b>—</b></div>
+              <div class="legend-row"><span class="dot" style="background:#a992f4"></span><span>暗号資産</span><b>—</b></div>
             </div>
-            <div id="bankFields" hidden>
-              <div class="field"><label for="bankName">銀行名</label><input id="bankName" value="三菱UFJ銀行" placeholder="銀行名"></div>
-              <div class="grid2"><div class="field"><label for="bankType">口座種別</label><select id="bankType"><option>普通預金</option><option>定期預金</option><option>その他</option></select></div><div class="field"><label for="bankDate">残高基準日</label><input id="bankDate" type="date"></div></div>
-              <div class="field"><label for="bankBalance">現在残高</label><input id="bankBalance" type="number" min="0" step="1" placeholder="500000"></div>
-            </div>
-            <button class="primary" id="saveButton" type="submit">取引を保存</button>
-            <div class="notice">CSV取込も同じ取引形式へ変換します。重複候補がある場合は保存前に確認する設計です。</div>
-          </form>
+          </div>
+        </div>
+
+        <div class="card ai">
+          <div class="ai-title"><span style="font-size:23px">✦</span><span>AI資産分析</span></div>
+          <div class="ai-sub">配分と目標のズレをチェック</div>
+          <button class="primary" data-go="analysisView">今の資産を分析する　→</button>
+        </div>
+
+        <div class="card section">
+          <div class="section-head"><div class="section-title">口座別の資産</div><button class="ghost" data-go="assetsView">すべて見る ›</button></div>
+          <div class="accounts" id="accounts"></div>
         </div>
       </section>
 
-      <section class="view" id="historyView" hidden><div class="panel"><h2>取引履歴</h2><div id="history"></div></div></section>
+      <section class="view" id="assetsView" hidden>
+        <div class="card section">
+          <div class="section-head"><div class="section-title">保有資産</div><button class="ghost" id="refreshPrices">再計算</button></div>
+          <div class="sub" style="margin-bottom:10px">現在価格は手入力です。入力値はこの端末のブラウザに保存されます。</div>
+          <div id="holdings"></div>
+        </div>
+        <div class="card section">
+          <div class="section-head"><div class="section-title">銀行預金</div><button class="ghost" id="addBankShortcut">残高を入力</button></div>
+          <div id="banks"></div>
+        </div>
+      </section>
+
+      <section class="view" id="analysisView" hidden>
+        <div class="card analysis-box">
+          <h2>AI資産分析</h2>
+          <p>ここは次の開発ステップ用の画面です。現在は、資産配分・口座別残高・手入力した現在価格を使った評価額までを整えています。</p>
+          <p>次にニュースDBやAI APIをつなぐと、「株式比率が目標より高い」「特定セクターへの偏りが大きい」などを自動評価できるようにできます。</p>
+          <button class="primary" disabled style="opacity:.55">AI分析は準備中</button>
+        </div>
+      </section>
+
+      <section class="view" id="historyView" hidden>
+        <div class="card panel"><div class="section-head"><div class="section-title">取引履歴</div></div><div id="history"></div></div>
+      </section>
     </main>
-    <button class="fab" data-go="addView">＋ 取引を追加</button>
+
+    <button class="fab" id="openSheet" aria-label="取引を追加">＋</button>
   </div>
-  <nav id="nav" hidden><button class="tab active" data-go="homeView">ホーム</button><button class="tab" data-go="addView">入力</button><button class="tab" data-go="historyView">履歴</button></nav>
+
+  <nav id="nav" hidden>
+    <button class="tab active" data-go="homeView"><span class="ico">⌂</span>ホーム</button>
+    <button class="tab" data-go="assetsView"><span class="ico">▥</span>資産</button>
+    <button class="tab" data-go="analysisView"><span class="ico">✦</span>AI分析</button>
+    <button class="tab" data-go="historyView"><span class="ico">◷</span>履歴</button>
+  </nav>
+
+  <div class="sheet-wrap" id="sheetWrap" hidden>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="sheet-head"><h2>資産を追加</h2><button class="icon-btn" id="closeSheet">✕</button></div>
+      <div class="seg"><button id="stockMode" class="active">株式・ETF</button><button id="fundMode">投資信託</button><button id="bankMode">預金残高</button></div>
+      <form id="tradeForm">
+        <div id="investmentFields">
+          <div class="field"><label for="account">証券口座</label><select id="account"><option>楽天証券</option><option>マネックス証券</option><option>SBI証券</option></select></div>
+          <div class="grid2">
+            <div class="field"><label for="accountType">口座区分</label><select id="accountType"><option>NISA</option><option>特定口座</option><option>一般口座</option></select></div>
+            <div class="field"><label for="tradeDate">約定日</label><input id="tradeDate" type="date"></div>
+          </div>
+          <div class="field"><label for="symbol">ティッカー／ファンド名</label><input id="symbol" placeholder="例：AAPL / eMAXIS Slim 全世界株式"></div>
+          <div id="stockFields">
+            <div class="grid2"><div class="field"><label for="quantity">数量</label><input id="quantity" type="number" min="0" step="any" placeholder="10"></div><div class="field"><label for="unitPrice">約定単価</label><input id="unitPrice" type="number" min="0" step="any" placeholder="150"></div></div>
+            <div class="grid2"><div class="field"><label for="currency">通貨</label><select id="currency"><option value="JPY">円</option><option value="USD">米ドル</option></select></div><div class="field"><label for="fx">約定時為替</label><input id="fx" type="number" min="0" step="any" value="1"></div></div>
+            <div class="field"><label for="fees">手数料・税</label><input id="fees" type="number" min="0" step="any" value="0"></div>
+          </div>
+          <div id="fundFields" hidden>
+            <div class="grid2"><div class="field"><label for="amount">積立・買付金額</label><input id="amount" type="number" min="0" step="1" placeholder="30000"></div><div class="field"><label for="nav">約定基準価額（1万口）</label><input id="nav" type="number" min="0" step="1" placeholder="15000"></div></div>
+            <div class="card" style="padding:12px;margin-bottom:14px"><div class="meta">今回増える口数</div><div class="value" id="calcUnits">—</div></div>
+          </div>
+        </div>
+        <div id="bankFields" hidden>
+          <div class="field"><label for="bankName">銀行名</label><input id="bankName" value="三菱UFJ銀行"></div>
+          <div class="grid2"><div class="field"><label for="bankType">口座種別</label><select id="bankType"><option>普通預金</option><option>定期預金</option><option>その他</option></select></div><div class="field"><label for="bankDate">残高基準日</label><input id="bankDate" type="date"></div></div>
+          <div class="field"><label for="bankBalance">現在残高</label><input id="bankBalance" type="number" min="0" step="1" placeholder="500000"></div>
+        </div>
+        <button class="primary" id="saveButton" type="submit">取引を保存</button>
+        <div class="notice">株価・基準価額のリアルタイム取得はまだ行いません。保有資産画面で現在価格を手入力できます。</div>
+      </form>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL='https://jgujjswbibrktfbcuwmi.supabase.co';
@@ -75,70 +240,198 @@
     const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
     const ACCOUNTS=['楽天証券','マネックス証券','SBI証券'];
     let trades=[],bankBalances=[],mode='stock',masked=false,currentUser=null;
-    const yen=n=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(n||0);
-    const esc=s=>String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-    document.getElementById('tradeDate').value=new Date().toISOString().slice(0,10);
-    function totals(){return ACCOUNTS.map(name=>({name,value:trades.filter(t=>t.account===name).reduce((s,t)=>s+t.value,0)}))}
-    function money(n){return masked?'¥••••••':yen(n)}
-    function render(){
-      const grouped=totals(),bankTotal=bankBalances.reduce((s,b)=>s+b.balance,0),total=grouped.reduce((s,a)=>s+a.value,0)+bankTotal,max=Math.max(...grouped.map(a=>a.value),1);
-      document.getElementById('totalValue').textContent=money(total);
-      document.getElementById('accounts').innerHTML=grouped.map(a=>`<article class="account"><div class="account-top"><div><div class="account-name">${a.name}</div><div class="account-type">NISA・特定・一般を合算</div></div><div><div class="account-value money">${money(a.value)}</div><div class="account-pl">取得金額ベース</div></div></div><div class="meter"><span style="width:${a.value/max*100}%"></span></div></article>`).join('');
-      document.getElementById('banks').innerHTML=bankBalances.length?bankBalances.map(b=>`<article class="account"><div class="account-top"><div><div class="account-name">${esc(b.name)}</div><div class="account-type">${esc(b.type)}・${b.date}時点</div></div><div class="account-value money">${money(b.balance)}</div></div></article>`).join(''):'<div class="empty">預金残高を入力すると総資産に合算されます</div>';
-      const rows=trades.slice().reverse().map(t=>`<div class="tx"><div><div class="tx-name">${esc(t.symbol)}</div><div class="tx-meta">${t.account}・${t.accountType}・${t.date}</div></div><div><div class="tx-value money">${money(t.value)}</div><div class="tx-units">${t.kind==='fund'?t.quantity.toLocaleString()+'口':t.quantity+'株'}</div></div></div>`).join('');
-      const empty='<div class="empty">取引はまだありません</div>';document.getElementById('recent').innerHTML=rows.slice(0,4)||empty;document.getElementById('history').innerHTML=rows||empty;
+
+    const yen=n=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0);
+    const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const today=()=>new Date().toISOString().slice(0,10);
+    const money=n=>masked?'¥••••••':yen(n);
+    const priceKey=t=>`assetflow:price:${t.account}|${t.accountType}|${t.symbol}`;
+    const getManualPrice=t=>Number(localStorage.getItem(priceKey(t))||0);
+
+    function setTheme(choice){
+      localStorage.setItem('assetflow:theme',choice);
+      let resolved=choice;
+      if(choice==='auto') resolved=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+      document.documentElement.dataset.theme=resolved;
+      document.getElementById('themeColor').content=resolved==='dark'?'#081720':'#f6f7f4';
+      document.getElementById('quickTheme').textContent=resolved==='dark'?'🌙':'☀️';
+      document.querySelectorAll('[data-theme-choice]').forEach(b=>b.classList.toggle('active',b.dataset.themeChoice===choice));
     }
-    function go(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.go===id));document.querySelector('.fab').hidden=id==='addView'}
+    const savedTheme=localStorage.getItem('assetflow:theme')||'auto';
+    setTheme(savedTheme);
+    matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',()=>{if((localStorage.getItem('assetflow:theme')||'auto')==='auto')setTheme('auto')});
+    document.querySelectorAll('[data-theme-choice]').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeChoice));
+    document.getElementById('quickTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
+    function holdings(){
+      const map=new Map();
+      trades.forEach(t=>{
+        const k=[t.account,t.accountType,t.symbol,t.kind].join('|');
+        if(!map.has(k)) map.set(k,{...t,quantity:0,cost:0});
+        const h=map.get(k); h.quantity+=Number(t.quantity)||0; h.cost+=Number(t.value)||0;
+      });
+      return [...map.values()];
+    }
+
+    function totalsByAccount(){
+      const hs=holdings();
+      return ACCOUNTS.map(name=>{
+        const items=hs.filter(h=>h.account===name);
+        const cost=items.reduce((s,h)=>s+h.cost,0);
+        const value=items.reduce((s,h)=>{
+          const p=getManualPrice(h);
+          return s+(p>0?p*h.quantity:h.cost);
+        },0);
+        return {name,cost,value};
+      });
+    }
+
+    function render(){
+      const hs=holdings(), grouped=totalsByAccount();
+      const bankTotal=bankBalances.reduce((s,b)=>s+b.balance,0);
+      const invTotal=grouped.reduce((s,a)=>s+a.value,0);
+      const total=invTotal+bankTotal;
+      document.getElementById('totalValue').textContent=money(total);
+      document.getElementById('donutTotal').textContent=money(total);
+      document.getElementById('invPct').textContent=total?Math.round(invTotal/total*100)+'%':'0%';
+      document.getElementById('cashPct').textContent=total?Math.round(bankTotal/total*100)+'%':'0%';
+
+      const max=Math.max(...grouped.map(a=>a.value),1);
+      document.getElementById('accounts').innerHTML=grouped.map(a=>`
+        <div class="account-row">
+          <div><div class="name">${a.name}</div><div class="meta">NISA・特定・一般を合算</div></div>
+          <div><div class="value">${money(a.value)}</div><div class="small">${a.value===a.cost?'取得額ベース':'手入力価格で評価'}</div></div>
+        </div>`).join('');
+
+      document.getElementById('banks').innerHTML=bankBalances.length?bankBalances.map(b=>`
+        <div class="account-row">
+          <div><div class="name">${esc(b.name)}</div><div class="meta">${esc(b.type)}・${esc(b.date)}時点</div></div>
+          <div class="value">${money(b.balance)}</div>
+        </div>`).join(''):'<div class="empty">預金残高はまだありません</div>';
+
+      document.getElementById('holdings').innerHTML=hs.length?hs.map((h,i)=>{
+        const p=getManualPrice(h), value=p>0?p*h.quantity:h.cost, pl=value-h.cost, rate=h.cost?pl/h.cost*100:0;
+        const unit=h.kind==='fund'?'口':'株';
+        return `<div class="asset-row">
+          <div>
+            <div class="name">${esc(h.symbol)}</div>
+            <div class="meta">${esc(h.account)}・${esc(h.accountType)}・${Number(h.quantity).toLocaleString()}${unit}</div>
+            <div class="asset-price">
+              <span class="small">現在価格（円換算）</span>
+              <input class="manual-price" data-index="${i}" type="number" min="0" step="any" value="${p||''}" placeholder="手入力">
+            </div>
+          </div>
+          <div>
+            <div class="value">${money(value)}</div>
+            <div class="small ${pl>=0?'gain':'loss'}">${p>0?(pl>=0?'+':'')+yen(pl)+' / '+(rate>=0?'+':'')+rate.toFixed(1)+'%':'取得額ベース'}</div>
+          </div>
+        </div>`;
+      }).join(''):'<div class="empty">取引を追加すると保有資産が表示されます</div>';
+
+      document.querySelectorAll('.manual-price').forEach(inp=>{
+        inp.onchange=()=>{
+          const h=hs[Number(inp.dataset.index)];
+          const v=Number(inp.value)||0;
+          if(v>0)localStorage.setItem(priceKey(h),String(v)); else localStorage.removeItem(priceKey(h));
+          render();
+        };
+      });
+
+      const rows=trades.slice().reverse().map(t=>`
+        <div class="tx">
+          <div><div class="name">${esc(t.symbol)}</div><div class="meta">${esc(t.account)}・${esc(t.accountType)}・${esc(t.date)}</div></div>
+          <div><div class="value">${money(t.value)}</div><div class="small">${t.kind==='fund'?Number(t.quantity).toLocaleString()+'口':Number(t.quantity)+'株'}</div></div>
+        </div>`).join('');
+      document.getElementById('history').innerHTML=rows||'<div class="empty">取引はまだありません</div>';
+    }
+
+    function go(id){
+      document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.go===id));
+    }
     document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
     document.getElementById('mask').onclick=()=>{masked=!masked;render()};
-    function setMode(next){mode=next;document.getElementById('investmentFields').hidden=next==='bank';document.getElementById('bankFields').hidden=next!=='bank';document.getElementById('stockFields').hidden=next!=='stock';document.getElementById('fundFields').hidden=next!=='fund';document.getElementById('stockMode').classList.toggle('active',next==='stock');document.getElementById('fundMode').classList.toggle('active',next==='fund');document.getElementById('bankMode').classList.toggle('active',next==='bank');document.getElementById('saveButton').textContent=next==='bank'?'預金残高を保存':'取引を保存'}
-    document.getElementById('stockMode').onclick=()=>setMode('stock');document.getElementById('fundMode').onclick=()=>setMode('fund');document.getElementById('bankMode').onclick=()=>setMode('bank');document.getElementById('addBankShortcut').onclick=()=>{go('addView');setMode('bank')};
-    function calcFund(){const amount=+document.getElementById('amount').value,nav=+document.getElementById('nav').value,units=nav?Math.floor(amount/nav*10000):0;document.getElementById('calcUnits').textContent=units?units.toLocaleString()+'口':'—';document.getElementById('calcAmount').textContent=amount?yen(amount):'—';return units}
-    document.getElementById('amount').oninput=calcFund;document.getElementById('nav').oninput=calcFund;
+    document.getElementById('refreshPrices').onclick=render;
+
+    const sheet=document.getElementById('sheetWrap');
+    const openSheet=(nextMode='stock')=>{setMode(nextMode);sheet.hidden=false};
+    document.getElementById('openSheet').onclick=()=>openSheet('stock');
+    document.getElementById('closeSheet').onclick=()=>sheet.hidden=true;
+    sheet.onclick=e=>{if(e.target===sheet)sheet.hidden=true};
+    document.getElementById('addBankShortcut').onclick=()=>openSheet('bank');
+
+    function setMode(next){
+      mode=next;
+      investmentFields.hidden=next==='bank';bankFields.hidden=next!=='bank';
+      stockFields.hidden=next!=='stock';fundFields.hidden=next!=='fund';
+      stockMode.classList.toggle('active',next==='stock');fundMode.classList.toggle('active',next==='fund');bankMode.classList.toggle('active',next==='bank');
+      saveButton.textContent=next==='bank'?'預金残高を保存':'取引を保存';
+    }
+    stockMode.onclick=()=>setMode('stock');fundMode.onclick=()=>setMode('fund');bankMode.onclick=()=>setMode('bank');
+    function calcFund(){const a=+amount.value,n=+nav.value,u=n?Math.floor(a/n*10000):0;calcUnits.textContent=u?u.toLocaleString()+'口':'—';return u}
+    amount.oninput=calcFund;nav.oninput=calcFund;
+    tradeDate.value=today();bankDate.value=today();
+
     async function getAccount(institution,type,currency='JPY'){
       let {data,error}=await db.from('accounts').select('id').eq('institution',institution).eq('account_type',type).maybeSingle();
       if(error)throw error;if(data)return data.id;
-      ({data,error}=await db.from('accounts').insert({name:institution,institution,account_type:type,currency}).select('id').single());if(error)throw error;return data.id;
+      ({data,error}=await db.from('accounts').insert({name:institution,institution,account_type:type,currency}).select('id').single());
+      if(error)throw error;return data.id;
     }
     async function getAsset(name,type,currency){
       let {data,error}=await db.from('assets').select('id').eq('name',name).eq('asset_type',type).maybeSingle();
       if(error)throw error;if(data)return data.id;
-      ({data,error}=await db.from('assets').insert({name,ticker:name,asset_type:type,currency}).select('id').single());if(error)throw error;return data.id;
+      ({data,error}=await db.from('assets').insert({name,ticker:name,asset_type:type,currency}).select('id').single());
+      if(error)throw error;return data.id;
     }
     async function loadCloud(){
-      document.getElementById('syncStatus').textContent='クラウドから読込中…';
+      syncStatus.textContent='クラウドから読込中…';
       const [txResult,bankResult]=await Promise.all([
         db.from('transactions').select('id,traded_at,quantity,unit_price,amount,accounts(institution,account_type),assets(name,asset_type)').order('traded_at'),
         db.from('balance_snapshots').select('id,balance,recorded_at,accounts(institution,account_type)').order('recorded_at',{ascending:false})
       ]);
       if(txResult.error)throw txResult.error;if(bankResult.error)throw bankResult.error;
       trades=txResult.data.map(t=>({id:t.id,kind:t.assets.asset_type,account:t.accounts.institution,accountType:t.accounts.account_type,date:t.traded_at,symbol:t.assets.name,quantity:Number(t.quantity),value:Number(t.amount)}));
-      const seen=new Set();bankBalances=bankResult.data.filter(b=>{const k=b.accounts.institution+'|'+b.accounts.account_type;if(seen.has(k))return false;seen.add(k);return true}).map(b=>({id:b.id,name:b.accounts.institution,type:b.accounts.account_type,balance:Number(b.balance),date:b.recorded_at}));
-      render();document.getElementById('syncStatus').textContent='クラウドと同期済み';
+      const seen=new Set();
+      bankBalances=bankResult.data.filter(b=>{const k=b.accounts.institution+'|'+b.accounts.account_type;if(seen.has(k))return false;seen.add(k);return true})
+        .map(b=>({id:b.id,name:b.accounts.institution,type:b.accounts.account_type,balance:Number(b.balance),date:b.recorded_at}));
+      render();syncStatus.textContent='クラウドと同期済み';
     }
-    document.getElementById('tradeForm').onsubmit=async e=>{
-      e.preventDefault();const button=document.getElementById('saveButton');button.disabled=true;document.getElementById('syncStatus').textContent='保存中…';
+
+    tradeForm.onsubmit=async e=>{
+      e.preventDefault();saveButton.disabled=true;syncStatus.textContent='保存中…';
       try{
         if(mode==='bank'){
-          const name=document.getElementById('bankName').value.trim(),balance=+document.getElementById('bankBalance').value,date=document.getElementById('bankDate').value,type=document.getElementById('bankType').value;
+          const name=bankName.value.trim(),balance=+bankBalance.value,date=bankDate.value,type=bankType.value;
           if(!name||!date||Number.isNaN(balance))throw new Error('銀行名・残高・基準日を入力してください');
-          const accountId=await getAccount(name,type);const {error}=await db.from('balance_snapshots').insert({account_id:accountId,balance,recorded_at:date});if(error)throw error;
+          const accountId=await getAccount(name,type);
+          const {error}=await db.from('balance_snapshots').insert({account_id:accountId,balance,recorded_at:date});if(error)throw error;
         }else{
-          const symbol=document.getElementById('symbol').value.trim(),date=document.getElementById('tradeDate').value,account=document.getElementById('account').value,accountType=document.getElementById('accountType').value;
-          if(!symbol||!date)throw new Error('銘柄と約定日を入力してください');
-          let quantity,value,unitPrice,currency='JPY',fee=0;
-          if(mode==='fund'){quantity=calcFund();value=+document.getElementById('amount').value;unitPrice=+document.getElementById('nav').value/10000;if(!quantity)throw new Error('買付金額と約定基準価額を入力してください');}
-          else{quantity=+document.getElementById('quantity').value;unitPrice=+document.getElementById('unitPrice').value;currency=document.getElementById('currency').value;fee=+document.getElementById('fees').value;value=quantity*unitPrice*(+document.getElementById('fx').value)+fee;if(!quantity||!value)throw new Error('数量と約定単価を入力してください');}
-          const accountId=await getAccount(account,accountType);const assetId=await getAsset(symbol,mode,currency);
-          const {error}=await db.from('transactions').insert({account_id:accountId,asset_id:assetId,transaction_type:'buy',traded_at:date,quantity,unit_price:unitPrice,amount:value,fee});if(error)throw error;
+          const sym=symbol.value.trim(),date=tradeDate.value,acc=account.value,accType=accountType.value;
+          if(!sym||!date)throw new Error('銘柄と約定日を入力してください');
+          let quantityV,valueV,unitPriceV,currencyV='JPY',feeV=0;
+          if(mode==='fund'){quantityV=calcFund();valueV=+amount.value;unitPriceV=+nav.value/10000;if(!quantityV)throw new Error('買付金額と約定基準価額を入力してください');}
+          else{quantityV=+quantity.value;unitPriceV=+unitPrice.value;currencyV=currency.value;feeV=+fees.value;valueV=quantityV*unitPriceV*(+fx.value)+feeV;if(!quantityV||!valueV)throw new Error('数量と約定単価を入力してください');}
+          const accountId=await getAccount(acc,accType);const assetId=await getAsset(sym,mode,currencyV);
+          const {error}=await db.from('transactions').insert({account_id:accountId,asset_id:assetId,transaction_type:'buy',traded_at:date,quantity:quantityV,unit_price:unitPriceV,amount:valueV,fee:feeV});if(error)throw error;
         }
-        e.target.reset();const today=new Date().toISOString().slice(0,10);document.getElementById('tradeDate').value=today;document.getElementById('bankDate').value=today;document.getElementById('bankName').value='三菱UFJ銀行';document.getElementById('fx').value=1;setMode(mode);await loadCloud();go('homeView');
-      }catch(error){alert('保存できませんでした：'+error.message);document.getElementById('syncStatus').textContent='同期エラー';}finally{button.disabled=false;}
+        e.target.reset();tradeDate.value=today();bankDate.value=today();bankName.value='三菱UFJ銀行';fx.value=1;
+        setMode(mode);await loadCloud();sheet.hidden=true;go('homeView');
+      }catch(error){alert('保存できませんでした：'+error.message);syncStatus.textContent='同期エラー';}
+      finally{saveButton.disabled=false}
     };
-    document.getElementById('loginForm').onsubmit=async e=>{e.preventDefault();const button=document.getElementById('loginButton'),errorBox=document.getElementById('loginError');button.disabled=true;errorBox.textContent='';const {error}=await db.auth.signInWithPassword({email:document.getElementById('loginEmail').value,password:document.getElementById('loginPassword').value});if(error){errorBox.textContent='ログインできませんでした。メールアドレスとパスワードを確認してください。';button.disabled=false;}};
-    document.getElementById('signOut').onclick=()=>db.auth.signOut();
-    async function showSession(session){currentUser=session?.user||null;document.getElementById('loginView').hidden=!!currentUser;document.getElementById('app').hidden=!currentUser;document.getElementById('nav').hidden=!currentUser;if(currentUser){try{await loadCloud()}catch(error){document.getElementById('syncStatus').textContent='読込エラー：'+error.message}}else{trades=[];bankBalances=[];document.getElementById('loginButton').disabled=false;}}
-    document.getElementById('bankDate').value=document.getElementById('tradeDate').value;
+
+    loginForm.onsubmit=async e=>{
+      e.preventDefault();loginButton.disabled=true;loginError.textContent='';
+      const {error}=await db.auth.signInWithPassword({email:loginEmail.value,password:loginPassword.value});
+      if(error){loginError.textContent='ログインできませんでした。メールアドレスとパスワードを確認してください。';loginButton.disabled=false}
+    };
+    signOut.onclick=()=>db.auth.signOut();
+    async function showSession(session){
+      currentUser=session?.user||null;loginView.hidden=!!currentUser;app.hidden=!currentUser;nav.hidden=!currentUser;
+      if(currentUser){try{await loadCloud()}catch(error){syncStatus.textContent='読込エラー：'+error.message}}
+      else{trades=[];bankBalances=[];loginButton.disabled=false}
+    }
     db.auth.onAuthStateChange((_event,session)=>setTimeout(()=>showSession(session),0));
     db.auth.getSession().then(({data})=>showSession(data.session));
   </script>
