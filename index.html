@@ -93,7 +93,11 @@
     .trade-choice{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 16px}.trade-choice button{border:1px solid var(--line);background:var(--surface2);color:var(--muted);padding:12px;border-radius:13px;font-weight:800}.trade-choice button.active{border-color:var(--brand);background:var(--brand2);color:var(--brand)}
     .form-label{font-size:12px;color:var(--muted);margin:2px 0 7px}.required{color:var(--brand);font-weight:800}.optional{font-size:10px;color:var(--muted);margin-left:4px}.field-hint{font-size:10px;color:var(--muted);line-height:1.5;margin-top:-2px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.notice{font-size:11px;color:var(--muted);line-height:1.6;margin-top:12px}
-    @media(max-width:430px){.alloc{grid-template-columns:130px 1fr}.donut{width:130px}.hero-value{font-size:30px}.section-head{align-items:flex-start}}
+    .secondary{width:100%;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--brand);padding:13px;font-weight:800}
+    .import-panel{position:fixed;inset:0;background:var(--bg);z-index:30;overflow:auto}.import-panel[hidden]{display:none}.import-page{width:min(100%,760px);margin:auto;padding:env(safe-area-inset-top) 14px calc(30px + env(safe-area-inset-bottom))}.import-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:15px 2px 10px;background:linear-gradient(var(--bg) 78%,transparent)}
+    .import-step{padding:16px;margin:10px 0}.import-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.summary-box{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:11px}.summary-box b{display:block;font-size:16px;margin-top:3px}.warning-box{background:color-mix(in srgb,#efc852 18%,var(--surface));border:1px solid color-mix(in srgb,#efc852 55%,var(--line));border-radius:14px;padding:12px;font-size:12px;line-height:1.6;margin:10px 0}.danger-box{background:color-mix(in srgb,var(--danger) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--danger) 40%,var(--line));border-radius:14px;padding:12px;font-size:12px;line-height:1.6;margin:10px 0}
+    .preview-scroll{overflow:auto;border:1px solid var(--line);border-radius:14px;margin:12px 0;max-height:48dvh}.preview-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:11px}.preview-table th{position:sticky;top:0;background:var(--surface2);z-index:1;color:var(--muted);text-align:left}.preview-table th,.preview-table td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}.preview-table td.missing{color:var(--danger)}.import-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.import-history-row{padding:11px 0;border-bottom:1px solid var(--line)}.import-history-row:last-child{border-bottom:0}.status-chip{display:inline-block;border-radius:99px;background:var(--brand2);color:var(--brand);font-size:10px;font-weight:800;padding:4px 7px}.status-chip.undone{background:var(--surface2);color:var(--muted)}
+    @media(max-width:430px){.alloc{grid-template-columns:130px 1fr}.donut{width:130px}.hero-value{font-size:30px}.section-head{align-items:flex-start}.import-summary{grid-template-columns:1fr 1fr}.summary-box:last-child{grid-column:1/-1}}
     @media(max-width:360px){.grid2{grid-template-columns:1fr}.alloc{grid-template-columns:1fr}.donut{margin:auto}}
   </style>
 </head>
@@ -194,7 +198,8 @@
       </section>
 
       <section class="view" id="historyView" hidden>
-        <div class="card panel"><div class="section-head"><div class="section-title">取引履歴</div></div><div id="history"></div></div>
+        <div class="card panel"><div class="section-head"><div class="section-title">CSV取込</div><button class="ghost" id="openCsvImport">SBI CSVを選択</button></div><div class="sub">CSVを解析して変更内容を確認してから、対象の口座区分と期間だけを置き換えます。</div><div id="importHistory"></div></div>
+        <div class="card panel" style="margin-top:12px"><div class="section-head"><div class="section-title">取引履歴</div></div><div id="history"></div></div>
       </section>
     </main>
 
@@ -250,6 +255,39 @@
     </div>
   </div>
 
+  <section class="import-panel" id="csvImportPanel" hidden>
+    <div class="import-page">
+      <div class="import-head"><div><div class="section-title">SBI証券 CSVインポート</div><div class="sub">解析 → プレビュー → 変更確認 → 確定</div></div><button class="icon-btn" id="closeCsvImport" aria-label="閉じる">✕</button></div>
+
+      <div class="card import-step" id="csvSelectStep">
+        <div class="section-title">1. CSVを選択</div>
+        <div class="field"><label for="sbiCsvFile">SBI証券「約定履歴照会」のCSV</label><input id="sbiCsvFile" type="file" accept=".csv,text/csv"></div>
+        <div class="notice">ファイルは確認操作をするまでSupabaseへ送信しません。UTF-8とCP932を判定し、実際の列名を照合します。</div>
+      </div>
+
+      <div class="card import-step" id="csvPreviewStep" hidden>
+        <div class="section-title">2. 取込プレビュー</div>
+        <div id="csvSummary"></div>
+        <div id="ambiguousAccountWrap" class="warning-box" hidden>
+          CSVの「特定/一般」は口座区分を断定できません。
+          <div class="field"><label for="ambiguousAccountType">このCSVではどちらとして取り込みますか</label><select id="ambiguousAccountType"><option value="">選択してください</option><option value="特定口座">特定</option><option value="一般口座">一般</option><option value="exclude">取込対象外</option></select></div>
+        </div>
+        <div id="csvIssues"></div>
+        <div class="preview-scroll"><table class="preview-table"><thead><tr><th>売買</th><th>約定日</th><th>銘柄名</th><th>ティッカー</th><th>数量</th><th>約定単価</th><th>通貨</th><th>口座区分</th><th>手数料</th><th>為替</th><th>円換算取引額</th><th>CSV未取得項目</th></tr></thead><tbody id="csvPreviewBody"></tbody></table></div>
+        <button class="primary" id="checkCsvChanges">変更内容を確認</button>
+      </div>
+
+      <div class="card import-step" id="csvConfirmStep" hidden>
+        <div class="section-title">3. 変更内容の確認</div>
+        <div id="csvChangeSummary"></div>
+        <div class="danger-box">表示されたSBI証券の口座区分・期間内だけをCSVの内容で再構築します。他社、別口座区分、期間外の取引は変更しません。</div>
+        <div class="import-actions"><button class="secondary" id="backToCsvPreview">戻る</button><button class="primary" id="applyCsvImport">確定して反映</button></div>
+      </div>
+
+      <div class="card import-step" id="csvDoneStep" hidden><div class="section-title">取込完了</div><div id="csvDoneMessage" class="notice"></div><button class="primary" id="finishCsvImport" style="margin-top:14px">取引履歴へ戻る</button></div>
+    </div>
+  </section>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL='https://jgujjswbibrktfbcuwmi.supabase.co';
@@ -260,8 +298,10 @@
     const NORMAL_FRESH_MS=15*60*1000;
     const MARKET_FRESH_MS=60*1000;
     const CREDIT_WINDOW_MS=61*1000;
-    let trades=[],bankBalances=[],mode='stock',tradeType='buy',masked=false,currentUser=null;
+    let trades=[],bankBalances=[],importBatches=[],csvImportReady=false,mode='stock',tradeType='buy',masked=false,currentUser=null;
     let marketPrices=new Map(),marketBusy=false,marketStatusOverride='',apiCreditLog=[];
+    let csvImport=null,csvPrepared=null;
+    const SBI_CSV_HEADER=['約定日','銘柄','銘柄コード','市場','取引','期限','預り','課税','約定数量','約定単価','手数料/諸経費等','税額','受渡日','受渡金額/決済損益'];
 
     const yen=n=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0);
     const usd=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(n)||0);
@@ -294,6 +334,137 @@
     matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',()=>{if((localStorage.getItem('assetflow:theme')||'auto')==='auto')setTheme('auto')});
     document.querySelectorAll('[data-theme-choice]').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeChoice));
     document.getElementById('quickTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
+    function parseCsv(text){
+      const rows=[];let row=[],field='',quoted=false;
+      for(let i=0;i<text.length;i++){
+        const c=text[i];
+        if(quoted){
+          if(c==='"'&&text[i+1]==='"'){field+='"';i++}
+          else if(c==='"')quoted=false;
+          else field+=c;
+        }else if(c==='"')quoted=true;
+        else if(c===','){row.push(field);field=''}
+        else if(c==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field=''}
+        else field+=c;
+      }
+      if(field||row.length){row.push(field.replace(/\r$/,''));rows.push(row)}
+      if(quoted)throw new Error('CSVの引用符が閉じられていません');
+      return rows;
+    }
+
+    function decodeSbiCsv(buffer){
+      const decoders=[['UTF-8',new TextDecoder('utf-8',{fatal:true})],['CP932',new TextDecoder('shift_jis',{fatal:true})]];
+      for(const [encoding,decoder] of decoders){
+        try{
+          const text=decoder.decode(buffer);
+          if(text.includes('約定日')&&text.includes('受渡金額/決済損益'))return {text,encoding};
+        }catch(_error){}
+      }
+      throw new Error('文字コードを判定できません。SBI証券から取得したCSVか確認してください');
+    }
+
+    async function sha256(value){
+      const bytes=value instanceof ArrayBuffer?value:new TextEncoder().encode(value);
+      const digest=await crypto.subtle.digest('SHA-256',bytes);
+      return [...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
+    }
+
+    const cleanCsvValue=value=>String(value??'').trim();
+    function csvNumber(value){
+      const cleaned=cleanCsvValue(value).replace(/,/g,'');
+      if(!cleaned||cleaned==='--')return null;
+      const number=Number(cleaned);
+      return Number.isFinite(number)?number:null;
+    }
+
+    async function analyzeSbiCsv(file){
+      const buffer=await file.arrayBuffer();
+      const {text,encoding}=decodeSbiCsv(buffer);
+      const parsed=parseCsv(text);
+      const headerIndex=parsed.findIndex(row=>row.length===SBI_CSV_HEADER.length&&SBI_CSV_HEADER.every((name,index)=>cleanCsvValue(row[index])===name));
+      if(headerIndex<0)throw new Error('SBI約定履歴の14列ヘッダーと一致しません。取込は行いません');
+      const malformed=[];
+      const sourceRows=[];
+      for(let index=headerIndex+1;index<parsed.length;index++){
+        const raw=parsed[index];
+        if(!raw.some(cell=>cleanCsvValue(cell)))continue;
+        if(raw.length!==SBI_CSV_HEADER.length){malformed.push(index+1);continue}
+        if(!/^\d{4}\/\d{2}\/\d{2}$/.test(cleanCsvValue(raw[0]))){malformed.push(index+1);continue}
+        sourceRows.push({sourceRowNumber:index+1,raw:raw.map(cleanCsvValue)});
+      }
+      if(!sourceRows.length)throw new Error('取引明細が見つかりません');
+      const occurrence=new Map();
+      for(const item of sourceRows){
+        const canonical=JSON.stringify(item.raw);
+        const count=(occurrence.get(canonical)||0)+1;occurrence.set(canonical,count);
+        item.occurrence=count;item.rowKey=await sha256(canonical+'#'+count);
+      }
+      const dates=sourceRows.map(item=>item.raw[0]).sort();
+      return {
+        fileName:file.name,fileHash:await sha256(buffer),encoding,sourceRows,malformed,
+        periodStart:dates[0].replaceAll('/','-'),periodEnd:dates.at(-1).replaceAll('/','-'),
+        exactDuplicateRows:[...occurrence.values()].reduce((sum,count)=>sum+Math.max(0,count-1),0)
+      };
+    }
+
+    function prepareSbiRows(){
+      const ambiguousChoice=ambiguousAccountType.value;
+      const rows=[],unsupported=[],unresolved=[],excluded=[];
+      for(const item of csvImport.sourceRows){
+        const raw=item.raw,tradeRaw=raw[4],custody=raw[6];
+        let assetType=null,transactionType=null;
+        if(tradeRaw==='投信金額買付'){assetType='fund';transactionType='buy'}
+        else if(tradeRaw==='株式現物買'){assetType='stock';transactionType='buy'}
+        else{unsupported.push({row:item.sourceRowNumber,reason:`未対応の取引「${tradeRaw}」`});continue}
+
+        let accountType=null;
+        if(custody==='NISA(成)'||custody==='NISA(つ)')accountType='NISA';
+        else if(custody==='特定')accountType='特定口座';
+        else if(custody==='特定/一般'){
+          if(!ambiguousChoice){unresolved.push({row:item.sourceRowNumber,reason:'「特定/一般」の口座区分が未選択'});continue}
+          if(ambiguousChoice==='exclude'){excluded.push(item);continue}
+          accountType=ambiguousChoice;
+        }else{unsupported.push({row:item.sourceRowNumber,reason:`未対応の預り区分「${custody}」`});continue}
+
+        const tickerValue=cleanCsvValue(raw[2]);
+        const isJapaneseStock=assetType==='stock'&&/^\d{3}[0-9A-Z]$/.test(tickerValue);
+        if(assetType==='stock'&&!isJapaneseStock){unsupported.push({row:item.sourceRowNumber,reason:'通貨を安全に判定できない株式'});continue}
+        const quantityValue=csvNumber(raw[8]),rawUnitPrice=csvNumber(raw[9]),amountValue=csvNumber(raw[13]);
+        if(!(quantityValue>0)||!(rawUnitPrice>0)||amountValue==null){unsupported.push({row:item.sourceRowNumber,reason:'数量・単価・受渡金額が不正'});continue}
+        const feePart=csvNumber(raw[10]),taxPart=csvNumber(raw[11]);
+        const feeValue=feePart==null&&taxPart==null?null:(feePart||0)+(taxPart||0);
+        const missing=[];
+        if(!tickerValue)missing.push('ティッカー');
+        if(feeValue==null)missing.push('手数料');
+        missing.push('為替');
+        const rawObject=Object.fromEntries(SBI_CSV_HEADER.map((name,index)=>[name,raw[index]]));
+        rows.push({
+          source_row_number:item.sourceRowNumber,row_key:item.rowKey,transaction_type:transactionType,
+          traded_at:raw[0].replaceAll('/','-'),name:raw[1],ticker:tickerValue||null,asset_type:assetType,
+          quantity:quantityValue,unit_price:assetType==='fund'?rawUnitPrice/10000:rawUnitPrice,
+          display_unit_price:rawUnitPrice,currency:'JPY',account_type:accountType,fee:feeValue,
+          exchange_rate:null,amount:amountValue,missing,raw_row:rawObject,raw_custody:custody
+        });
+      }
+      return {rows,unsupported,unresolved,excluded};
+    }
+
+    function renderCsvPreview(){
+      if(!csvImport)return;
+      csvPrepared=prepareSbiRows();
+      const counts={fund:0,stock:0};csvPrepared.rows.forEach(row=>counts[row.asset_type]++);
+      csvSummary.innerHTML=`<div class="import-summary"><div class="summary-box"><span class="small">取込候補</span><b>${csvPrepared.rows.length.toLocaleString()}件</b></div><div class="summary-box"><span class="small">期間</span><b style="font-size:12px">${esc(csvImport.periodStart)}<br>〜 ${esc(csvImport.periodEnd)}</b></div><div class="summary-box"><span class="small">文字コード</span><b>${esc(csvImport.encoding)}</b></div></div><div class="meta">投資信託 ${counts.fund.toLocaleString()}件・国内株式 ${counts.stock.toLocaleString()}件・ファイルSHA-256 ${esc(csvImport.fileHash.slice(0,12))}…</div>`;
+      const issueParts=[];
+      if(csvImport.exactDuplicateRows)issueParts.push(`同一内容の行 ${csvImport.exactDuplicateRows}件は別注文の可能性があるため保持します。`);
+      if(csvImport.malformed.length)issueParts.push(`形式不正 ${csvImport.malformed.length}件は取込できません。`);
+      if(csvPrepared.unsupported.length)issueParts.push(`未対応 ${csvPrepared.unsupported.length}件は取込できません。`);
+      if(csvPrepared.unresolved.length)issueParts.push(`口座区分未選択 ${csvPrepared.unresolved.length}件があります。`);
+      if(csvPrepared.excluded.length)issueParts.push(`「特定/一般」 ${csvPrepared.excluded.length}件を除外します。`);
+      csvIssues.innerHTML=issueParts.length?`<div class="warning-box">${issueParts.map(esc).join('<br>')}</div>`:'';
+      csvPreviewBody.innerHTML=csvPrepared.rows.map(row=>`<tr><td>${row.transaction_type==='sell'?'売却':'買付'}</td><td>${esc(row.traded_at)}</td><td>${esc(row.name)}</td><td class="${row.ticker?'':'missing'}">${esc(row.ticker||'未取得')}</td><td>${Number(row.quantity).toLocaleString()}</td><td>${Number(row.display_unit_price).toLocaleString()}</td><td>${row.currency}</td><td>${esc(row.account_type)}</td><td class="${row.fee==null?'missing':''}">${row.fee==null?'未取得':yen(row.fee)}</td><td class="missing">未取得</td><td>${yen(row.amount)}</td><td class="missing">${esc(row.missing.join('・'))}</td></tr>`).join('');
+      checkCsvChanges.disabled=!!(csvImport.malformed.length||csvPrepared.unsupported.length||csvPrepared.unresolved.length||!csvPrepared.rows.length);
+    }
 
     function holdings(){
       const map=new Map();
@@ -359,6 +530,13 @@
         const value=items.reduce((s,h)=>s+valuation(h).value,0);
         return {name,cost,costKnown,value};
       });
+    }
+
+    function renderImportHistory(){
+      const el=document.getElementById('importHistory');if(!el)return;
+      const statusLabel={applied:'反映済み',superseded:'置換済み',undone:'取消済み',processing:'処理中'};
+      el.innerHTML=importBatches.length?importBatches.map(batch=>`<div class="import-history-row"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="name">${esc(batch.file_name)}</div><div class="meta">${esc(batch.period_start)}〜${esc(batch.period_end)}・${Number(batch.imported_count).toLocaleString()}件取込・${Number(batch.replaced_count).toLocaleString()}件置換</div></div><div style="text-align:right"><span class="status-chip ${batch.status==='undone'?'undone':''}">${statusLabel[batch.status]||esc(batch.status)}</span>${batch.status==='applied'?`<div><button class="mini-action undo-import" data-batch-id="${esc(batch.id)}" style="margin-top:7px">この取込を取消</button></div>`:''}</div></div></div>`).join(''):'<div class="empty">CSV取込履歴はまだありません</div>';
+      document.querySelectorAll('.undo-import').forEach(button=>button.onclick=()=>undoCsvImport(button.dataset.batchId));
     }
 
     function setMarketStatus(text){marketStatusOverride=text;renderMarketStatus()}
@@ -452,6 +630,7 @@
           <div><div class="value">${t.value==null?'取引額未登録':money(t.value)}</div><div class="small">${t.kind==='fund'?Number(t.quantity).toLocaleString()+'口':Number(t.quantity)+'株'}</div></div>
         </div>`).join('');
       document.getElementById('history').innerHTML=rows||'<div class="empty">取引はまだありません</div>';
+      renderImportHistory();
       renderMarketStatus();
     }
 
@@ -563,6 +742,75 @@
     sheet.onclick=e=>{if(e.target===sheet)sheet.hidden=true};
     document.getElementById('addBankShortcut').onclick=()=>openSheet('bank');
 
+    function resetCsvImport(){
+      csvImport=null;csvPrepared=null;sbiCsvFile.value='';ambiguousAccountType.value='';
+      csvSelectStep.hidden=false;csvPreviewStep.hidden=true;csvConfirmStep.hidden=true;csvDoneStep.hidden=true;
+      csvSummary.innerHTML='';csvIssues.innerHTML='';csvPreviewBody.innerHTML='';csvChangeSummary.innerHTML='';
+    }
+    document.getElementById('openCsvImport').onclick=()=>{resetCsvImport();csvImportPanel.hidden=false};
+    document.getElementById('closeCsvImport').onclick=()=>{csvImportPanel.hidden=true;resetCsvImport()};
+    document.getElementById('finishCsvImport').onclick=()=>{csvImportPanel.hidden=true;resetCsvImport();go('historyView')};
+
+    sbiCsvFile.onchange=async()=>{
+      const file=sbiCsvFile.files?.[0];if(!file)return;
+      sbiCsvFile.disabled=true;syncStatus.textContent='CSVを解析中…';
+      try{
+        csvImport=await analyzeSbiCsv(file);
+        const hasAmbiguous=csvImport.sourceRows.some(item=>item.raw[6]==='特定/一般');
+        ambiguousAccountWrap.hidden=!hasAmbiguous;
+        csvPreviewStep.hidden=false;csvConfirmStep.hidden=true;csvDoneStep.hidden=true;
+        renderCsvPreview();syncStatus.textContent='CSV解析済み・まだ反映していません';
+      }catch(error){
+        csvImport=null;alert('CSVを解析できませんでした：'+error.message);syncStatus.textContent='CSV解析エラー';
+      }finally{sbiCsvFile.disabled=false}
+    };
+    ambiguousAccountType.onchange=renderCsvPreview;
+
+    checkCsvChanges.onclick=async()=>{
+      renderCsvPreview();
+      if(checkCsvChanges.disabled||!csvPrepared?.rows.length)return;
+      const accountTypes=[...new Set(csvPrepared.rows.map(row=>row.account_type))];
+      const dates=csvPrepared.rows.map(row=>row.traded_at).sort();
+      checkCsvChanges.disabled=true;checkCsvChanges.textContent='確認中…';
+      try{
+        const {data,error}=await db.rpc('preview_sbi_csv_import',{p_period_start:dates[0],p_period_end:dates.at(-1),p_account_types:accountTypes});
+        if(error)throw error;
+        csvPrepared.scope={periodStart:dates[0],periodEnd:dates.at(-1),accountTypes};
+        csvPrepared.changePreview=data;
+        csvChangeSummary.innerHTML=`<div class="import-summary"><div class="summary-box"><span class="small">CSVから登録</span><b>${csvPrepared.rows.length.toLocaleString()}件</b></div><div class="summary-box"><span class="small">置換対象</span><b>${Number(data.existing_count||0).toLocaleString()}件</b></div><div class="summary-box"><span class="small">うち手入力</span><b>${Number(data.manual_count||0).toLocaleString()}件</b></div></div><div class="meta">SBI証券・${accountTypes.map(esc).join(' / ')}・${esc(dates[0])}〜${esc(dates.at(-1))}</div>`;
+        csvConfirmStep.hidden=false;csvConfirmStep.scrollIntoView({behavior:'smooth',block:'start'});
+      }catch(error){alert('変更内容を確認できませんでした：'+error.message)}
+      finally{checkCsvChanges.disabled=false;checkCsvChanges.textContent='変更内容を確認'}
+    };
+
+    backToCsvPreview.onclick=()=>{csvConfirmStep.hidden=true;csvPreviewStep.scrollIntoView({behavior:'smooth',block:'start'})};
+    applyCsvImport.onclick=async()=>{
+      if(!csvImport||!csvPrepared?.scope)return;
+      applyCsvImport.disabled=true;applyCsvImport.textContent='反映中…';syncStatus.textContent='CSVを反映中…';
+      try{
+        const rows=csvPrepared.rows.map(({display_unit_price,missing,raw_custody,...row})=>row);
+        const {data,error}=await db.rpc('apply_sbi_csv_import',{
+          p_file_hash:csvImport.fileHash,p_file_name:csvImport.fileName,
+          p_period_start:csvPrepared.scope.periodStart,p_period_end:csvPrepared.scope.periodEnd,
+          p_account_types:csvPrepared.scope.accountTypes,p_rows:rows
+        });
+        if(error)throw error;
+        await loadCloud();csvSelectStep.hidden=true;csvPreviewStep.hidden=true;csvConfirmStep.hidden=true;csvDoneStep.hidden=false;
+        csvDoneMessage.textContent=data.status==='already_imported'?`同じCSVはすでに取り込み済みです。二重登録はしていません。`:`${Number(data.imported_count||0).toLocaleString()}件を登録し、対象範囲の${Number(data.replaced_count||0).toLocaleString()}件を置き換えました。`;
+        syncStatus.textContent='CSV取込完了';csvDoneStep.scrollIntoView({block:'start'});
+      }catch(error){alert('CSVを反映できませんでした。データは変更されていません：'+error.message);syncStatus.textContent='CSV取込エラー'}
+      finally{applyCsvImport.disabled=false;applyCsvImport.textContent='確定して反映'}
+    };
+
+    async function undoCsvImport(batchId){
+      if(!confirm('このCSV取込で登録した取引を削除し、置換前の取引を復元します。実行しますか？'))return;
+      syncStatus.textContent='CSV取込を取り消し中…';
+      try{
+        const {data,error}=await db.rpc('undo_sbi_csv_import',{p_batch_id:batchId});if(error)throw error;
+        await loadCloud();alert(`${Number(data.deleted_count||0).toLocaleString()}件を取り消し、以前の${Number(data.restored_count||0).toLocaleString()}件を復元しました。`);
+      }catch(error){alert('このCSV取込を取り消せませんでした：'+error.message);syncStatus.textContent='取消エラー'}
+    }
+
     function setMode(next){
       mode=next;
       investmentFields.hidden=next==='bank';bankFields.hidden=next!=='bank';
@@ -611,9 +859,10 @@
     }
     async function loadCloud(){
       syncStatus.textContent='クラウドから読込中…';
-      const [txResult,bankResult]=await Promise.all([
+      const [txResult,bankResult,importResult]=await Promise.all([
         db.from('transactions').select('id,traded_at,quantity,unit_price,amount,fee,exchange_rate,data_source,transaction_type,accounts(institution,account_type),assets(id,name,ticker,asset_type,currency)').order('traded_at').order('id'),
-        db.from('balance_snapshots').select('id,balance,recorded_at,accounts(institution,account_type)').order('recorded_at',{ascending:false})
+        db.from('balance_snapshots').select('id,balance,recorded_at,accounts(institution,account_type)').order('recorded_at',{ascending:false}),
+        db.from('import_batches').select('id,file_name,file_hash,period_start,period_end,account_types,row_count,imported_count,replaced_count,status,created_at').order('created_at',{ascending:false}).limit(10)
       ]);
       if(txResult.error)throw txResult.error;if(bankResult.error)throw bankResult.error;
       trades=txResult.data.map(t=>({
@@ -625,6 +874,10 @@
       const seen=new Set();
       bankBalances=bankResult.data.filter(b=>{const k=b.accounts.institution+'|'+b.accounts.account_type;if(seen.has(k))return false;seen.add(k);return true})
         .map(b=>({id:b.id,name:b.accounts.institution,type:b.accounts.account_type,balance:Number(b.balance),date:b.recorded_at}));
+      csvImportReady=!importResult.error;importBatches=csvImportReady?(importResult.data||[]):[];
+      openCsvImport.disabled=!csvImportReady;
+      openCsvImport.textContent=csvImportReady?'SBI CSVを選択':'SQL適用後に利用';
+      if(importResult.error)console.warn('CSV import migration is not installed yet',importResult.error);
       render();syncStatus.textContent='クラウドと同期済み';
     }
 
@@ -688,7 +941,7 @@
           maybeRefreshOnStartup();
         }catch(error){syncStatus.textContent='読込エラー：'+error.message}
       }else{
-        trades=[];bankBalances=[];marketPrices=new Map();marketBusy=false;marketStatusOverride='';loginButton.disabled=false;
+        trades=[];bankBalances=[];importBatches=[];csvImportReady=false;marketPrices=new Map();marketBusy=false;marketStatusOverride='';loginButton.disabled=false;
       }
     }
     db.auth.onAuthStateChange((_event,session)=>setTimeout(()=>showSession(session),0));
