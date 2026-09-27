@@ -1,0 +1,243 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Asset Flow 画像の読取確認</title>
+<style>body{font:16px/1.7 system-ui,sans-serif;color:#183e30;background:#f3f7f4;margin:0}main{max-width:1150px;margin:auto;padding:22px}section,article{padding:20px;background:white;border:1px solid #d5e3da;border-radius:14px;margin:16px 0}h1{font-size:25px}h2{font-size:20px}button,input,select{font:inherit;min-height:44px;border:1px solid #b8cec0;border-radius:8px;padding:8px;max-width:100%;box-sizing:border-box}button{color:white;background:#176448;cursor:pointer;margin:6px}button:disabled{opacity:.5}input[type=checkbox]{min-height:20px;width:20px;height:20px;vertical-align:middle}label{display:block;margin:12px 0}a{color:#096446}pre{font:12px/1.6 monospace;white-space:pre-wrap;overflow-wrap:anywhere}.scroll{overflow:auto}table{border-collapse:collapse;min-width:950px;font-size:14px}th,td{border-bottom:1px solid #d5e3da;text-align:left;padding:10px;vertical-align:top}th{background:#eff6f0}.notice{color:#597164}.issues{color:#8f3d22}#login input{display:block;width:100%;margin:8px 0}[hidden]{display:none!important}</style>
+<main><h1>画像の読取確認</h1><p>保有一覧を読み取り、内容を確認するための画面です。ここでは資産の保存・更新は行いません。</p>
+<section><h2>必要な画像</h2><p>銘柄名・コード、保有数量、平均取得単価とその通貨、列見出しを含めてください。投信は単価が1万口あたりか分かる範囲、年金は購入金額、NISAは枠の見出しも含めます。氏名・口座番号・ログイン情報は隠してください。</p><p>長い一覧は見出しと1行分を重ねて撮影できます。取得金額や評価額があれば、その列も含めてください。</p><p class="notice">アプリは読取後の画像を保存しません。元の写真・ファイル、チャット添付、端末のバックアップは削除されません。結果の文字はこの画面内だけに置き、終了・破棄・10分経過で消去します。</p></section>
+<section><h2>ログインと画像選択</h2><p id="authStatus" role="status">ログイン状態を確認中…</p><form id="login" hidden><label for="email">アプリのメールアドレス</label><input id="email" type="email" autocomplete="username" required><label for="password">アプリのパスワード</label><input id="password" type="password" autocomplete="current-password" required><button>ログイン</button></form>
+<label for="images">スマホ：写真から選択 ／ PC：ファイルを選択</label><input id="images" type="file" accept="image/png,image/jpeg" multiple><p>PNG/JPEG、最大5枚、1枚8MB以内。PCではこの画像選択欄へドラッグできます。</p>
+<label for="tax">画像に区分がない場合の口座区分</label><select id="tax"><option>特定口座</option><option>一般口座</option><option>NISA</option><option>iDeCo・企業型DC</option></select>
+<label><input id="consent" type="checkbox">選択した画像をSupabase経由でGoogle Cloud Visionへ送って読み取る</label><button id="read" disabled>選んだ画像を読み取る</button><button id="discard">画像・結果を破棄</button><p id="status" role="status">画像は未選択です。</p></section>
+<section><h2>読み取り結果</h2><p>すべての行・数値を元の表示と照合してください。誤読や省略がある場合は未確認のままとし、購入・売却を推測して登録しません。</p><div id="results"></div></section><p><a href="./ocr-check.html">架空画像で接続を確認</a> ／ <a href="./">既存のアプリへ戻る</a></p></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script><script>(function(root,factory){const api=factory();if(typeof module==='object')module.exports=api;else root.ScreenshotCore=api})(typeof globalThis!=='undefined'?globalThis:this,function(){
+  'use strict';
+  const clean=v=>String(v??'').normalize('NFKC').trim();
+  const scopes=['account_total','nisa_growth','nisa_accumulation','legacy_nisa','legacy_accumulation'];
+  const courses=['total','receive','reinvest'];
+  function decimal(v,{optional=false}={}){
+    let text=clean(v);
+    if(optional&&(text===''||text==='--'||text==='—'))return null;
+    // Do not guess ambiguous OCR glyphs, currency or units.
+    if(!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,10})?$/.test(text))throw Error('数値を確認してください：'+text.slice(0,40));
+    text=text.replaceAll(',','');let [a,b='']=text.split('.');a=a.replace(/^0+(?=\d)/,'');b=b.replace(/0+$/,'');
+    if(a.length>18)throw Error('数値が大きすぎます');
+    return a+(b?'.'+b:'');
+  }
+  function perUnit(v,basis){
+    const s=decimal(v);if(basis===1)return s;if(basis!==10000)throw Error('価格単位を確認してください');
+    const [whole,frac='']=s.split('.');const digits=(whole+frac).padStart(frac.length+5,'0');
+    const at=digits.length-frac.length-4;
+    return (digits.slice(0,at).replace(/^0+(?=\d)/,'')||'0')+'.'+digits.slice(at).replace(/0+$/,'');
+  }
+  function exactUnit(v,basis){return perUnit(v,basis).replace(/\.$/,'')}
+  function normalize(row){
+    const name=clean(row.name),ticker=clean(row.ticker).toUpperCase();
+    if(!name||name.length>160)throw Error('銘柄名を確認してください');
+    if(!['stock','fund'].includes(row.kind)||!['JPY','USD'].includes(row.currency))throw Error('商品区分と通貨を確認してください');
+    if(row.kind==='stock'&&!/^[A-Z0-9.^:/-]{1,20}$/.test(ticker))throw Error('株式の銘柄コード・ティッカーを確認してください');
+    const basis=Number(row.price_basis);if(![1,10000].includes(basis)||row.kind==='stock'&&basis!==1)throw Error('取得単価の単位を確認してください');
+    const holding_scope=row.holding_scope||'account_total',distribution_course=row.distribution_course||'total';
+    const cost_currency=row.cost_currency||row.currency,statement_currency=row.statement_currency||row.currency;
+    if(!scopes.includes(holding_scope)||!courses.includes(distribution_course)||row.kind==='stock'&&distribution_course!=='total')throw Error('NISA枠と分配金コースを確認してください');
+    if(!['JPY','USD'].includes(cost_currency)||!['JPY','USD'].includes(statement_currency))throw Error('取得金額と評価額の通貨を確認してください');
+    return {asset_id:row.asset_id||null,name,ticker,kind:row.kind,currency:row.currency,holding_scope,distribution_course,cost_currency,statement_currency,
+      quantity:decimal(row.quantity),acquisition_price:decimal(row.acquisition_price,{optional:row.kind==='fund'}),price_basis:basis,
+      cost_total:decimal(row.cost_total,{optional:true}),statement_value:decimal(row.statement_value,{optional:true}),
+      expected_revision:Number(row.expected_revision||0)};
+  }
+  const assetKey=r=>JSON.stringify([r.asset_id||[r.kind,r.ticker||clean(r.name),r.currency],r.currency]);
+  const key=r=>JSON.stringify([assetKey(r),r.holding_scope||'account_total',r.distribution_course||'total']);
+  const unit=r=>r.acquisition_price===null?null:exactUnit(r.acquisition_price,r.price_basis);
+  function equal(a,b){return a.quantity===b.quantity&&unit(a)===unit(b)&&a.cost_total===b.cost_total&&a.cost_currency===b.cost_currency&&a.statement_value===b.statement_value&&a.statement_currency===b.statement_currency}
+  function checkCoverage(rows){
+    for(const [i,a] of rows.entries())for(const b of rows.slice(i+1))if(assetKey(a)===assetKey(b)){
+      if(a.holding_scope!==b.holding_scope&&[a.holding_scope,b.holding_scope].includes('account_total'))throw Error(a.name+'：NISA全枠の合計と枠別残高を混在できません');
+      if(a.holding_scope===b.holding_scope&&a.distribution_course!==b.distribution_course&&[a.distribution_course,b.distribution_course].includes('total'))throw Error(a.name+'：分配金コースの合計とコース別残高を混在できません');
+    }
+  }
+  function deduplicate(rows){
+    const map=new Map();let overlaps=0;
+    for(const raw of rows){const row=normalize(raw),k=key(row),old=map.get(k);
+      if(old){if(!equal(old,row))throw Error(row.name+'：同じ銘柄に異なる数値があります。合算せず確認してください');overlaps++;}
+      else map.set(k,row);
+    }
+    const unique=[...map.values()];checkCoverage(unique);return {rows:unique,overlaps};
+  }
+  function compare(previous,incoming){
+    const old=new Map(deduplicate(previous).rows.map(n=>[key(n),n]));
+    const data=deduplicate(incoming);
+    checkCoverage([...old.values(),...data.rows]);
+    return {...data,changes:data.rows.map(row=>{
+      const prior=old.get(key(row));let status='new';
+      if(prior){status=equal(prior,row)?'unchanged':prior.quantity!==row.quantity?'quantity':unit(prior)!==unit(row)||prior.cost_total!==row.cost_total||prior.cost_currency!==row.cost_currency?'acquisition':'valuation'}
+      return {row,prior:prior||null,status};
+    })};
+  }
+  function wordsToLines(words){
+    const lines=[];
+    for(const word of words.slice().sort((a,b)=>a.y-b.y||a.x-b.x)){
+      const line=lines.find(l=>Math.abs(l.y-word.y)<=Math.max(3,Math.min(l.h,word.h)*0.55));
+      if(line)line.words.push(word);else lines.push({y:word.y,h:word.h,words:[word]});
+    }
+    return lines.sort((a,b)=>a.y-b.y).map(l=>({...l,words:l.words.sort((a,b)=>a.x-b.x)}));
+  }
+  function suggestRows(words,{kind,currency,price_basis}){
+    const aliases={name:['銘柄名','銘柄'],ticker:['銘柄コード','コード','ティッカー'],quantity:['保有数量','保有株数','保有口数','数量'],acquisition_price:['平均取得単価','取得単価','平均取得価額'],cost_total:['取得金額','取得価額合計'],statement_value:['評価額','評価金額']};
+    const lines=wordsToLines(words);let columns=[],header=-1;
+    // Deliberately accept only a recognized single-line table; card layouts fall back to review entry.
+    for(let i=0;i<lines.length;i++){
+      const found=[];const used=new Set();
+      for(let w=0;w<lines[i].words.length;w++){
+        for(let n=Math.min(5,lines[i].words.length-w);n>0;n--){
+          const group=lines[i].words.slice(w,w+n),text=group.map(x=>clean(x.text)).join('').replace(/\s/g,'');
+          const field=Object.keys(aliases).find(k=>!used.has(k)&&aliases[k].includes(text));
+          if(field){found.push({field,x:group[0].x,right:group.at(-1).x+group.at(-1).w});used.add(field);w+=n-1;break;}
+        }
+      }
+      if(used.has('name')&&used.has('quantity')&&used.has('acquisition_price')){columns=found.sort((a,b)=>a.x-b.x);header=i;break;}
+    }
+    if(header<0)return {rows:[],issues:['列見出しを特定できませんでした。読取文字を確認し、下の表へ必要項目を入力してください。']};
+    const rows=[],issues=[];
+    for(const line of lines.slice(header+1)){
+      const cells={};for(const word of line.words){
+        const center=word.x+word.w/2;
+        let index=columns.findIndex((c,i)=>i===columns.length-1||center<(c.right+columns[i+1].x)/2);
+        const field=columns[Math.max(0,index)].field;(cells[field]??=[]).push(word.text);
+      }
+      const row=Object.fromEntries(Object.entries(cells).map(([k,v])=>[k,v.join(k==='name'?' ':'')]));
+      if(!row.name||!row.quantity||!row.acquisition_price){issues.push('読み切れない行があります：'+line.words.map(w=>w.text).join(' ').slice(0,100));continue;}
+      rows.push({...row,kind,currency,price_basis});
+    }
+    return {rows,issues};
+  }
+  return {clean,decimal,exactUnit,normalize,key,equal,deduplicate,compare,wordsToLines,suggestRows,scopes,courses};
+});
+</script><script>(function(root,factory){const api=factory(typeof module==='object'?require('./screenshot-core.js'):root.ScreenshotCore);if(typeof module==='object')module.exports=api;else root.ScreenshotLayouts=api})(typeof globalThis!=='undefined'?globalThis:this,function(C){
+  'use strict';
+  const text=v=>C.clean(v).replace(/\s/g,'');
+  const labels={name:['銘柄名','銘柄','ファンド名','運用商品名'],quantity:['保有数量','保有株数','保有口数','保有数(口)','保有数','残高数量'],acquisition_price:['平均取得単価','取得単価','平均取得価額'],cost_total:['取得金額','購入金額'],statement_value:['時価評価額','概算評価額','資産残高','評価額'],current:['現在値','基準価額','時価単価'],course:['分配金の取扱い','分配金の','分配金'],type:['種別','商品タイプ'],account:['口座区分','口座'],profit:['外貨建評価損益','評価損益','損益']};
+  const names={green_us:'米国株・上下2段の一覧',stacked:'国内株・投信・枠別の一覧',pension:'iDeCo・企業型DC',rakuten:'保有商品詳細・外貨預り金',fund_courses:'投信・受取/再投資コース別'};
+  function scan(lines,aliases){
+    const hits=[];
+    for(const line of lines)for(let i=0;i<line.words.length;i++)for(let n=1;n<=Math.min(14,line.words.length-i);n++){
+      const words=line.words.slice(i,i+n),s=text(words.map(w=>w.text).join(''));
+      if(aliases.includes(s)){hits.push({x:words[0].x,right:words.at(-1).x+words.at(-1).w,y:line.y,h:line.h,words});break}
+    }
+    return hits;
+  }
+  function number(raw){
+    const s=text(raw).replace(/(?:株|口|USD|USドル|米ドル|円)$/,'');
+    try{return C.decimal(s)}catch{return null}
+  }
+  function detect(s){
+    if(s.includes('拠出金累計')&&s.includes('残高数量'))return 'pension';
+    if(s.includes('外貨建評価損益')&&s.includes('米国株式'))return 'green_us';
+    if(s.includes('平均取得価額')&&s.includes('時価評価額')&&s.includes('保有商品'))return 'rakuten';
+    if(s.includes('平均取得単価')&&s.includes('概算評価額')&&s.includes('再投資'))return 'fund_courses';
+    if(s.includes('取得金額')&&(s.includes('ファンド名')||s.includes('株式(特定預り)')))return 'stacked';
+    return null;
+  }
+  function account(s,fallback){
+    if(/iDeCo|企業型|拠出金累計/.test(s))return 'iDeCo・企業型DC';
+    if(s.includes('NISA'))return 'NISA';
+    if(/特定/.test(s))return '特定口座';
+    if(/一般/.test(s))return '一般口座';
+    return fallback||null;
+  }
+  function scope(s){
+    if(/旧つみたてNISA|旧NISA.*つみたて/.test(s))return 'legacy_accumulation';
+    if(/旧一般NISA|旧NISA/.test(s))return 'legacy_nisa';
+    if(/つみたて投資枠|NISAつみたて枠/.test(s))return 'nisa_accumulation';
+    if(/成長投資枠|NISA成長枠/.test(s))return 'nisa_growth';
+    return 'account_total';
+  }
+  function parse(words,settings={}){
+    if(!Array.isArray(words)||words.length>50000)return {rows:[],issues:['読取結果が多すぎます。画像の範囲を分けてください。'],cash:[],format:null};
+    const safe=words.filter(w=>typeof w.text==='string'&&[w.x,w.y,w.w,w.h].every(Number.isFinite)&&w.w>=0&&w.h>0);
+    const lines=C.wordsToLines(safe),all=lines.map(l=>text(l.words.map(w=>w.text).join(''))).join('');
+    const format=detect(all);if(!format)return {...C.suggestRows(safe,settings),format:null,cash:[]};
+    const headers=scan(lines,labels.quantity),rows=[],issues=[],cash=[];
+    if(!headers.length)return {rows,issues:['数量の列を特定できませんでした。見出しを含めて確認してください。'],cash,format};
+    for(let hi=0;hi<headers.length;hi++){
+      const qh=headers[hi],nextHeader=headers[hi+1]?.y??Infinity;
+      const band=lines.filter(l=>l.y>=qh.y-28&&l.y<=qh.y+32);
+      const anchors={quantity:qh};
+      for(const [field,aliases] of Object.entries(labels))if(field!=='quantity'){
+        const found=scan(band,aliases).sort((a,b)=>Math.abs(a.y-qh.y)-Math.abs(b.y-qh.y));if(found.length)anchors[field]=found[0];
+      }
+      if(format!=='green_us'&&!anchors.name||format!=='pension'&&!anchors.acquisition_price){issues.push('銘柄名または取得単価の見出しが不鮮明です。この表は自動入力しません。');continue}
+      if(format==='stacked'&&anchors.cost_total)delete anchors.statement_value;
+      const columns=Object.entries(anchors).map(([field,a])=>({field,...a})).sort((a,b)=>a.x-b.x);
+      // Ignore duplicate aliases inside the same physical column (e.g. a two-line header).
+      const unique=columns.filter((c,i)=>!columns.slice(0,i).some(p=>Math.abs((p.x+p.right-c.x-c.right)/2)<18));
+      const bounds={};unique.forEach((c,i)=>bounds[c.field]={left:i?(unique[i-1].right+c.x)/2:-Infinity,right:i<unique.length-1?(c.right+unique[i+1].x)/2:Infinity});
+      if(!bounds.quantity||format!=='green_us'&&!bounds.name){issues.push('列の重なりを判定できません。この表は手入力で確認してください。');continue}
+      const headerEnd=Math.max(...Object.values(anchors).map(a=>a.y+a.h));
+      const region=lines.filter(l=>l.y>headerEnd+1&&l.y<nextHeader-28);
+      const cell=(line,field)=>{const b=bounds[field];return b?line.words.filter(w=>w.x+w.w/2>=b.left&&w.x+w.w/2<b.right):[]};
+      const valueAt=(line,field)=>cell(line,field).map(w=>w.text).join('');
+      const candidates=[];
+      for(const line of region){const raw=valueAt(line,'quantity');if(!raw)continue;const n=number(raw);if(n!==null)candidates.push({line,n});else if(/\d/.test(raw)&&!/[合計預り枠価額数量]/.test(raw))issues.push('数量を読み切れない行があります。該当する画像と照合してください。')}
+      const priorHeading=lines.filter(l=>l.y<qh.y&&l.y>Math.max(qh.y-100,headers[hi-1]?.y??-Infinity)).map(l=>text(l.words.map(w=>w.text).join('')));
+      const section=priorHeading.filter(s=>/米国株式|投資信託|株式\(|NISA|特定預り|一般預り/.test(s)).slice(-3).join('');
+      const sectionAccount=format==='pension'?'iDeCo・企業型DC':account(section,settings.account_type);
+      for(let i=0;i<candidates.length;i++){
+        const {line,n}=candidates[i],previous=candidates[i-1]?.line,next=candidates[i+1]?.line;
+        const half=Math.min(60,Math.max(18,previous?(line.y-previous.y)/2:next?(next.y-line.y)/2:35));
+        const start=format==='green_us'?(previous?previous.y+previous.h:headerEnd):previous?(previous.y+line.y)/2:headerEnd;
+        const note=region.find(l=>l.y>line.y&&/^[※*]/.test(text(l.words.map(w=>w.text).join(''))));
+        const end=format==='green_us'?line.y+line.h:next?(line.y+next.y)/2:format==='pension'?Math.min(note?.y??Infinity,line.y+120):line.y+half;
+        const rowLines=region.filter(l=>l.y>=start&&l.y<end);
+        const readLines=format==='green_us'?[line]:rowLines;
+        const strings=field=>readLines.map(l=>valueAt(l,field)).filter(Boolean);
+        const numbers=field=>strings(field).map(number).filter(v=>v!==null);
+        const nameParts=format==='green_us'?rowLines.filter(l=>l!==line).map(l=>l.words.map(w=>w.text).join('')):rowLines.map(l=>valueAt(l,'name')).filter(Boolean);
+        let name=nameParts.join('').replace(/現買|現売|積立|買付|売却|メール/g,'');
+        if(!name){issues.push('銘柄名を読み取れない数量があります。確認してください。');continue}
+        const rowText=rowLines.map(l=>text(l.words.map(w=>w.text).join(''))).join('');
+        if(format==='rakuten'&&/外貨預り金/.test(rowText)){
+          if(/USD|USドル|米ドル/.test(rowText))cash.push({currency:'USD',amount:n,kind:'cash_balance',confirmed:false});
+          issues.push('外貨預り金は保有銘柄へ加算しません。預り金合計との内訳を確認してください。');continue;
+        }
+        const kind=format==='green_us'||format==='rakuten'?'stock':format==='pension'||format==='fund_courses'||/投資信託|ファンド名/.test(section+band.map(l=>text(l.words.map(w=>w.text).join(''))).join(''))?'fund':'stock';
+        let ticker='';
+        if(kind==='stock'){
+          const match=name.match(format==='stacked'?/(?:^|[^A-Z0-9])(\d{3}[A-Z0-9])(?=$|[^A-Z0-9])/ : /^([A-Z][A-Z0-9.]{0,9})(?=[^A-Z0-9.]|$)/);
+          ticker=match?.[1]||'';if(ticker)name=name.replace(ticker,'').trim()||ticker;
+          if(!ticker){issues.push('株式コードを確定できない行があります。自動入力を保留しました。');continue}
+        }
+        const prices=numbers('acquisition_price'),costs=numbers('cost_total'),values=numbers('statement_value');
+        if(format!=='pension'&&(prices.length!==(format==='stacked'?2:1))){issues.push(name+'：取得単価と現在値を分離できません。自動入力を保留しました。');continue}
+        const currency=format==='green_us'||format==='rakuten'?'USD':'JPY';
+        let cost_total=costs[0]??null,statement_value=values[0]??null;
+        if(format==='stacked'){if(costs.length===2){cost_total=costs[0];statement_value=costs[1]}else{cost_total=null;statement_value=null;issues.push(name+'：取得金額と評価額は画像から確認してください。')}}
+        const courseText=strings('course').join('');
+        let distribution_course='total';
+        if(format==='fund_courses'){
+          if(/再投資/.test(courseText))distribution_course='reinvest';else if(/受取/.test(courseText))distribution_course='receive';else{issues.push(name+'：受取・再投資のコースを判定できません。自動入力を保留しました。');continue}
+        }
+        const rowAccount=account(strings('account').join(''),sectionAccount),holding_scope=scope(section+strings('account').join(''));
+        if(rowAccount==='NISA'&&holding_scope==='account_total')issues.push(name+'：NISAの対象枠が画像で特定できません。枠を指定するか全枠合計か確認してください。');
+        if(rowLines.some(l=>l.words.some(w=>typeof w.confidence==='number'&&w.confidence<0.85)))issues.push(name+'：認識が不確かな文字があります。数値と名称を確認してください。');
+        rows.push({name,ticker,kind,currency,quantity:n,acquisition_price:format==='pension'?null:prices[0],price_basis:kind==='fund'?10000:1,cost_total,statement_value,cost_currency:currency,statement_currency:format==='rakuten'?'JPY':currency,holding_scope,distribution_course,account_type:rowAccount,source_layout:format});
+      }
+    }
+    if(format==='pension')issues.push('拠出金累計と商品の購入金額は別です。取得単価を逆算せず、未表示なら不明として残します。');
+    if(format==='rakuten')issues.push('保有商品評価額・預り金・資産合計を重ねて足しません。外貨残高が預り金合計に含まれるか確認します。');
+    return {format,formatName:names[format],rows,cash,issues:[...new Set(issues)]};
+  }
+  return {parse,detect,number};
+});
+</script>
+<script>
+'use strict';const SUPABASE_URL='https://jgujjswbibrktfbcuwmi.supabase.co',SUPABASE_KEY='sb_publishable_Cr_jJE04LYsjxQao1hNyow_iIwXJeop';const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY),$=id=>document.getElementById(id);let controller=null,generation=0,busy=false,clearTimer=null;
+const scopes={account_total:'区分なし／要確認',nisa_growth:'成長投資枠',nisa_accumulation:'つみたて投資枠',legacy_nisa:'旧一般NISA',legacy_accumulation:'旧つみたてNISA'},courses={total:'区分なし',receive:'受取',reinvest:'再投資'};
+function clear(){generation++;controller?.abort();controller=null;clearTimeout(clearTimer);busy=false;$('images').value='';$('results').replaceChildren();$('password').value='';$('status').textContent='画像・結果をアプリから破棄しました。';$('images').disabled=false;$('tax').disabled=false;$('consent').disabled=false;void authState()}
+async function authState(){try{const {data,error}=await db.auth.getSession();const ready=!error&&!!data.session;$('login').hidden=ready;$('read').disabled=!ready||busy;$('authStatus').textContent=ready?'ログイン済みです。画像を選んでください。':'アプリに登録した本人のアカウントでログインしてください。'}catch{$('authStatus').textContent='ログイン先に接続できませんでした。'}}
+$('login').onsubmit=async e=>{e.preventDefault();const b=$('login').querySelector('button');b.disabled=true;try{const{error}=await db.auth.signInWithPassword({email:$('email').value,password:$('password').value});$('password').value='';if(error){$('authStatus').textContent='ログインできませんでした。アプリの登録情報を確認してください。';return}await authState()}finally{b.disabled=false}};
+$('images').onchange=()=>{$('status').textContent=$('images').files.length+'枚を選択中（未送信）';$('consent').checked=false};$('discard').onclick=clear;
+function showResult(index,result){const parsed=ScreenshotLayouts.parse(result.words||[],{account_type:$('tax').value});const a=document.createElement('article'),h=document.createElement('h3'),info=document.createElement('p'),scroll=document.createElement('div'),table=document.createElement('table');h.textContent=index+'枚目：'+(ScreenshotLayouts.names?.[parsed.format]||parsed.format||'形式未確認');info.textContent=parsed.rows.length+'行を抽出。画像は解放済みです。';scroll.className='scroll';const cols=['銘柄・コード','口座区分・枠','分配金','保有数量','平均取得単価','取得金額','評価額'];const tr=document.createElement('tr');for(const v of cols){const th=document.createElement('th');th.textContent=v;tr.append(th)}table.append(tr);
+for(const r of parsed.rows){const row=document.createElement('tr');for(const v of [r.name+' '+(r.ticker||''),(r.account_type||'要確認')+' '+(scopes[r.holding_scope]||''),courses[r.distribution_course]||'区分なし',r.quantity,r.acquisition_price===null?'不明':r.acquisition_price+' '+r.currency+' / '+r.price_basis+'単位',r.cost_total===null?'不明':r.cost_total+' '+r.cost_currency,r.statement_value===null?'不明':r.statement_value+' '+r.statement_currency]){const td=document.createElement('td');td.textContent=v;row.append(td)}table.append(row)}scroll.append(table);a.append(h,info,scroll);for(const issue of parsed.issues||[]){const p=document.createElement('p');p.className='issues';p.textContent=issue;a.append(p)}for(const c of parsed.cash||[]){const p=document.createElement('p');p.textContent='未確認の預り金候補：'+c.amount+' '+c.currency+'。資産合計に含まれているか、残高の定義を確認してください。';a.append(p)}const d=document.createElement('details'),s=document.createElement('summary'),pre=document.createElement('pre');s.textContent='文字・座標の確認（保存されません）';pre.textContent=JSON.stringify({text:result.text,words:result.words,parsed},null,2);d.append(s,pre);a.append(d);$('results').append(a)}
+$('read').onclick=async()=>{if(busy)return;if(!$('consent').checked){$('status').textContent='画像の送信先の確認にチェックを入れてください。';return}let files=[...$('images').files];if(!files.length||files.length>5||files.some(f=>!['image/png','image/jpeg'].includes(f.type)||f.size>8*1024*1024)){$('status').textContent='PNG/JPEGを最大5枚、1枚8MB以内で選んでください。';files=[];return}
+busy=true;const token=++generation;controller=new AbortController();const signal=controller.signal;$('read').disabled=true;$('images').disabled=true;$('images').value='';$('tax').disabled=true;$('consent').disabled=true;$('results').replaceChildren();clearTimeout(clearTimer);clearTimer=setTimeout(clear,10*60*1000);let file=null;
+try{const{data,error}=await db.auth.getSession();if(error||!data.session)throw Error('アプリにログインしてください。');let count=0;while(files.length){if(signal.aborted)break;file=files.shift();$('status').textContent=(++count)+'枚目を読み取り中…';const response=await fetch(SUPABASE_URL+'/functions/v1/screenshot-ocr',{method:'POST',body:file,signal,cache:'no-store',headers:{Authorization:'Bearer '+data.session.access_token,apikey:SUPABASE_KEY,'Content-Type':file.type}});file=null;if(!response.ok)throw Error('読取接続エラー（'+response.status+'）。手入力または設定確認が必要です。');let result=await response.json();if(token!==generation||signal.aborted)return;showResult(count,result);result=null}if(token===generation)$('status').textContent='読み取り完了。画像は保持していません。資産への保存・更新はしていません。'}catch(error){if(token===generation)$('status').textContent=signal.aborted?'読み取りを取り消しました。':error.message}finally{file=null;files=[];if(token===generation){busy=false;controller=null;$('images').disabled=false;$('tax').disabled=false;$('consent').disabled=false;await authState()}}};window.addEventListener('pagehide',clear);void authState();
+</script></html>
+
