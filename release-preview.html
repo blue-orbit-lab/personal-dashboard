@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7f4" id="themeColor">
+  <title>Asset Flow</title>
+  <style>
+    [hidden]{display:none!important}
+    :root{
+      color-scheme:light;
+      --bg:#f6f7f4;--surface:#ffffff;--surface2:#f1f4f1;--ink:#10231d;--muted:#6c7a75;
+      --line:#dde6e1;--brand:#0f6b52;--brand2:#dff3eb;--accent:#57d9b0;--danger:#b84f52;
+      --shadow:0 10px 35px rgba(21,52,42,.08);--nav:rgba(255,255,255,.92);
+    }
+    html[data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#081720;--surface:#10252e;--surface2:#0c2028;--ink:#edf8f4;--muted:#9bb0a9;
+      --line:#28424a;--brand:#72ecc4;--brand2:#103f35;--accent:#72ecc4;--danger:#ff8b8b;
+      --shadow:0 14px 40px rgba(0,0,0,.28);--nav:rgba(8,23,32,.92);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans JP",system-ui,-apple-system,sans-serif;transition:.25s background,.25s color}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    button:disabled{cursor:default;opacity:.58}
+    .login{min-height:100dvh;display:grid;place-items:center;padding:24px}
+    .login-card{width:min(100%,420px);background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow)}
+    .brandline{display:flex;align-items:center;gap:10px;font-weight:800;font-size:28px}
+    .leaf{width:28px;height:28px;border-radius:70% 15% 70% 15%;background:linear-gradient(145deg,var(--brand),var(--accent));transform:rotate(-18deg);position:relative}
+    .leaf:after{content:"";position:absolute;left:7px;top:7px;width:16px;height:2px;background:#fff;border-radius:99px;transform:rotate(-35deg);opacity:.9}
+    .sub{font-size:12px;color:var(--muted);margin-top:5px}
+    .field{display:grid;gap:7px;margin:14px 0}
+    .field label{font-size:12px;color:var(--muted)}
+    input,select{width:100%;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--ink);padding:13px 14px;font-size:16px;outline:none}
+    input:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+    .primary{width:100%;border:0;border-radius:14px;background:var(--brand);color:#fff;padding:14px;font-weight:800}
+    html[data-theme="dark"] .primary{color:#08241b}
+    .error{min-height:18px;color:var(--danger);font-size:12px;margin-top:10px}
+    .app{max-width:560px;margin:auto;min-height:100dvh;padding:env(safe-area-inset-top) 14px calc(92px + env(safe-area-inset-bottom))}
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 2px 10px;position:sticky;top:0;background:linear-gradient(var(--bg) 70%,transparent);z-index:5}
+    .brand-small{display:flex;align-items:center;gap:9px;font-size:20px;font-weight:800}
+    .brand-small .leaf{width:24px;height:24px}
+    .head-actions{display:flex;gap:6px;align-items:center}
+    .icon-btn,.ghost{border:0;background:transparent;color:var(--ink);border-radius:12px;padding:9px}
+    .themebar{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);padding:4px;border:1px solid var(--line);border-radius:999px;margin:5px 0 14px}
+    .themebar button{border:0;background:transparent;color:var(--muted);padding:9px;border-radius:999px;font-size:12px}
+    .themebar button.active{background:var(--surface);color:var(--brand);font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+    .hero{padding:20px;margin-bottom:12px}
+    .eyebrow{font-size:13px;font-weight:700}
+    .hero-value{font-size:34px;font-weight:850;letter-spacing:-.045em;margin-top:7px}
+    .delta{display:inline-flex;margin-top:8px;background:var(--brand2);color:var(--brand);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
+    .spark{height:88px;margin-top:12px;position:relative;overflow:hidden}
+    .spark svg{width:100%;height:100%}
+    .periods{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--line);padding-top:8px}
+    .periods button{border:0;background:transparent;color:var(--muted);padding:7px;border-radius:999px;font-size:11px}
+    .periods .active{background:var(--brand);color:#fff;font-weight:800}
+    html[data-theme="dark"] .periods .active{color:#08241b}
+    .section{padding:16px;margin:12px 0}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+    .section-title{font-weight:800;font-size:15px}
+    .mini-toggle{display:flex;background:var(--surface2);border-radius:999px;padding:3px;gap:3px}
+    .mini-toggle button{border:0;background:transparent;color:var(--muted);font-size:11px;padding:7px 11px;border-radius:999px}
+    .mini-toggle .active{background:var(--surface);color:var(--brand);font-weight:800;border:1px solid var(--line)}
+    .alloc{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center}
+    .donut{width:150px;aspect-ratio:1;border-radius:50%;background:var(--line);display:grid;place-items:center}
+    .donut:after{content:"";width:88px;aspect-ratio:1;background:var(--surface);border-radius:50%;position:absolute}
+    .donut{position:relative}.donut-label{position:relative;z-index:1;text-align:center;font-weight:800;font-size:12px}
+    .legend{display:grid;gap:9px;font-size:12px}.legend-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}.dot{width:10px;height:10px;border-radius:50%}
+    .ai{padding:16px;background:linear-gradient(135deg,var(--surface),color-mix(in srgb,var(--brand2) 70%,var(--surface)));border:1px solid color-mix(in srgb,var(--brand) 35%,var(--line))}
+    .ai-title{display:flex;gap:10px;align-items:center;font-weight:850}.ai-sub{font-size:12px;color:var(--muted);margin:4px 0 12px 30px}
+    .accounts{display:grid;gap:8px}.account-row,.asset-row,.tx{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.account-row:last-child,.asset-row:last-child,.tx:last-child{border-bottom:0}
+    .name{font-weight:750;font-size:13px}.meta{font-size:11px;color:var(--muted);margin-top:4px}.value{text-align:right;font-weight:800}.small{font-size:11px;color:var(--muted);margin-top:4px}
+    .view[hidden]{display:none}
+    .asset-price{margin-top:9px;display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center}.asset-price input{padding:9px 10px;font-size:13px}
+    .market-line{margin-top:9px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    .market-copy{font-size:11px;color:var(--muted);line-height:1.5}
+    .mini-action{border:1px solid var(--line);background:var(--surface2);color:var(--brand);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+    .market-status{font-size:11px;color:var(--muted);line-height:1.55;margin:-3px 0 10px}
+    .market-status.live{color:var(--brand);font-weight:700}
+    .gain{color:var(--brand)}.loss{color:var(--danger)}
+    .empty{text-align:center;color:var(--muted);padding:24px 12px;font-size:12px}
+    .panel{padding:16px}
+    .sync{font-size:11px;color:var(--muted);text-align:center;margin:6px 0 10px}
+    .analysis-box{padding:18px}.analysis-box h2{margin:0 0 8px;font-size:18px}.analysis-box p{font-size:13px;line-height:1.7;color:var(--muted)}
+    .fab{position:fixed;right:max(18px,calc((100vw - 540px)/2));bottom:calc(84px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--brand);color:#fff;font-size:30px;box-shadow:0 12px 28px rgba(14,96,74,.28);z-index:7}
+    html[data-theme="dark"] .fab{color:#08241b}
+    nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,560px);display:grid;grid-template-columns:repeat(4,1fr);background:var(--nav);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:7px 10px calc(8px + env(safe-area-inset-bottom));z-index:6}
+    .tab{border:0;background:transparent;color:var(--muted);padding:8px 4px;font-size:10px;border-radius:12px}.tab .ico{display:block;font-size:18px;line-height:1.2}.tab.active{color:var(--brand);font-weight:800}
+    .sheet-wrap{position:fixed;inset:0;background:rgba(0,0,0,.34);display:grid;align-items:end;z-index:20}.sheet-wrap[hidden]{display:none}.sheet{width:min(100%,560px);max-height:88dvh;overflow:auto;margin:auto;background:var(--surface);border-radius:26px 26px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -20px 50px rgba(0,0,0,.2)}
+    .grab{width:46px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}.sheet-head{display:flex;justify-content:space-between;align-items:center}.sheet h2{margin:0;font-size:18px}
+    .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);border-radius:14px;padding:4px;margin:16px 0}.seg button{border:0;background:transparent;color:var(--muted);padding:10px 5px;border-radius:10px;font-size:12px}.seg .active{background:var(--surface);color:var(--brand);font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .trade-choice{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 16px}.trade-choice button{border:1px solid var(--line);background:var(--surface2);color:var(--muted);padding:12px;border-radius:13px;font-weight:800}.trade-choice button.active{border-color:var(--brand);background:var(--brand2);color:var(--brand)}
+    .form-label{font-size:12px;color:var(--muted);margin:2px 0 7px}.required{color:var(--brand);font-weight:800}.optional{font-size:10px;color:var(--muted);margin-left:4px}.field-hint{font-size:10px;color:var(--muted);line-height:1.5;margin-top:-2px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.notice{font-size:11px;color:var(--muted);line-height:1.6;margin-top:12px}
+    .secondary{width:100%;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--brand);padding:13px;font-weight:800}
+    .import-panel{position:fixed;inset:0;background:var(--bg);z-index:30;overflow:auto}.import-panel[hidden]{display:none}.import-page{width:min(100%,760px);margin:auto;padding:env(safe-area-inset-top) 14px calc(30px + env(safe-area-inset-bottom))}.import-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:15px 2px 10px;background:linear-gradient(var(--bg) 78%,transparent)}
+    .import-step{padding:16px;margin:10px 0}.import-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.summary-box{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:11px}.summary-box b{display:block;font-size:16px;margin-top:3px}.warning-box{background:color-mix(in srgb,#efc852 18%,var(--surface));border:1px solid color-mix(in srgb,#efc852 55%,var(--line));border-radius:14px;padding:12px;font-size:12px;line-height:1.6;margin:10px 0}.danger-box{background:color-mix(in srgb,var(--danger) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--danger) 40%,var(--line));border-radius:14px;padding:12px;font-size:12px;line-height:1.6;margin:10px 0}
+    .preview-scroll{overflow:auto;border:1px solid var(--line);border-radius:14px;margin:12px 0;max-height:48dvh}.preview-table{width:max-content;min-width:100%;border-collapse:collapse;font-size:11px}.preview-table th{position:sticky;top:0;background:var(--surface2);z-index:1;color:var(--muted);text-align:left}.preview-table th,.preview-table td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}.preview-table td.missing{color:var(--danger)}.import-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.import-history-row{padding:11px 0;border-bottom:1px solid var(--line)}.import-history-row:last-child{border-bottom:0}.status-chip{display:inline-block;border-radius:99px;background:var(--brand2);color:var(--brand);font-size:10px;font-weight:800;padding:4px 7px}.status-chip.undone{background:var(--surface2);color:var(--muted)}
+    @media(max-width:430px){.alloc{grid-template-columns:130px 1fr}.donut{width:130px}.hero-value{font-size:30px}.section-head{align-items:flex-start}.import-summary{grid-template-columns:1fr 1fr}.summary-box:last-child{grid-column:1/-1}}
+    @media(max-width:360px){.grid2{grid-template-columns:1fr}.alloc{grid-template-columns:1fr}.donut{margin:auto}}
+  </style>
+</head>
+<body>
+  <section class="login" id="loginView">
+    <form class="login-card" id="loginForm">
+      <div class="brandline"><span class="leaf"></span><span>Asset Flow</span></div>
+      <div class="sub">ライトも、ダークも。自分らしく。</div>
+      <div style="height:10px"></div>
+      <div class="field"><label for="loginEmail">メールアドレス</label><input id="loginEmail" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="loginPassword">パスワード</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+      <button class="primary" id="loginButton" type="submit">ログイン</button>
+      <div class="error" id="loginError"></div>
+    </form>
+  </section>
+
+  <div class="app" id="app" hidden>
+    <header>
+      <div class="brand-small"><span class="leaf"></span><span>Asset Flow</span></div>
+      <div class="head-actions">
+        <button class="icon-btn" id="mask" aria-label="金額を隠す">◉</button>
+        <button class="icon-btn" id="quickTheme" aria-label="テーマ切替">☀️</button>
+        <button class="ghost" id="signOut">退出</button>
+      </div>
+    </header>
+
+    <div class="themebar">
+      <button data-theme-choice="light">ライト</button>
+      <button data-theme-choice="dark">ダーク</button>
+      <button data-theme-choice="auto">自動</button>
+    </div>
+    <div class="sync" id="syncStatus"></div>
+
+    <main>
+      <section class="view" id="homeView">
+        <div class="card section"><button type="button" class="primary" data-screenshot-entry>スクショから残高を登録</button><button type="button" class="secondary" data-cash-entry>預り金・預金を登録</button><p class="sub">スマホの写真・PCのファイルから。変更がない残高は追加しません。</p></div>
+        <div class="card hero">
+          <div class="eyebrow">登録資産の参考評価額</div>
+          <div class="hero-value" id="totalValue">未確認</div>
+          <div class="delta" id="deltaText">取得額ベース</div>
+          <div class="notice" id="accuracyNotice">証券会社の残高との照合は未実施です。証券口座の現金・未登録口座を含む総資産はまだ確定できません。</div>
+          <div class="notice">資産推移は、基準日付きの残高を蓄積してから表示します。</div>
+
+        </div>
+
+        <div class="card section">
+          <div class="section-head">
+            <div class="section-title">資産配分</div>
+            <div class="small">登録・評価できた資産の内訳</div>
+          </div>
+          <div class="alloc">
+            <div class="donut" id="allocationDonut"><div class="donut-label" id="donutTotal">¥0</div></div>
+            <div class="legend">
+              <div class="legend-row"><span class="dot" style="background:var(--brand)"></span><span>証券資産</span><b id="invPct">0%</b></div>
+              <div class="legend-row"><span class="dot" style="background:#89c8f5"></span><span>預金・預り金</span><b id="cashPct">0%</b></div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="card ai">
+          <div class="ai-title">残高を確かめる</div>
+          <div class="ai-sub">価格・数量・預金の基準日を確認</div>
+          <button class="primary" data-go="assetsView">保有資産を確認する　→</button>
+        </div>
+
+        <div class="card section">
+          <div class="section-head"><div class="section-title">口座別の資産</div><button class="ghost" data-go="assetsView">すべて見る ›</button></div>
+          <div class="accounts" id="accounts"></div>
+        </div>
+      </section>
+
+      <section class="view" id="assetsView" hidden>
+        <div class="card section">
+          <div class="section-head"><div class="section-title">保有資産</div><button class="ghost" id="refreshPrices">市場価格を更新</button></div>
+          <div class="market-status" id="marketStatus">市場価格を確認しています…</div>
+          <div class="sub" style="margin-bottom:10px">米国株・ETFは市場価格とUSD/JPYで円換算。通常時は15分以内のキャッシュを再利用し、夜間の市場モードと手動更新では新しい価格を優先します。</div>
+          <button type="button" class="secondary" data-screenshot-entry>スクショで保有残高を更新</button>
+          <div id="holdings"></div>
+        </div>
+        <div class="card section">
+          <div class="section-head"><div class="section-title">銀行預金</div><button class="ghost" id="addBankShortcut">残高を入力</button></div>
+          <div id="banks"></div>
+        </div>
+      </section>
+
+      <section class="view" id="analysisView" hidden>
+        <div class="card analysis-box">
+          <h2>AI資産分析</h2>
+          <p>ここは次の開発ステップ用の画面です。現在は、資産配分・口座別残高・市場価格を使った評価額までを整えています。</p>
+          <p>次にニュースDBやAI APIをつなぐと、「株式比率が目標より高い」「特定セクターへの偏りが大きい」などを自動評価できるようにできます。</p>
+          <button class="primary" disabled style="opacity:.55">AI分析は準備中</button>
+        </div>
+      </section>
+
+      <section class="view" id="historyView" hidden>
+        <div class="card panel"><div class="section-head"><div class="section-title">CSV取込</div><button class="ghost" id="openCsvImport">SBI CSVを選択</button></div><div class="sub">CSVの内容を確認できます。現行の期間置換には別の取引を消す可能性があるため、この見直し版では反映・取消を停止しています。</div><div id="importHistory"></div></div>
+        <div class="card panel" style="margin-top:12px"><div class="section-head"><div class="section-title">取引履歴</div></div><div id="history"></div></div>
+      </section>
+    </main>
+
+    <button class="fab" id="openSheet" aria-label="取引を追加">＋</button>
+  </div>
+
+  <nav id="nav" hidden>
+    <button class="tab active" data-go="homeView"><span class="ico">⌂</span>ホーム</button>
+    <button class="tab" data-go="assetsView"><span class="ico">▥</span>資産</button>
+    <button class="tab" data-go="analysisView"><span class="ico">✦</span>AI分析</button>
+    <button class="tab" data-go="historyView"><span class="ico">◷</span>履歴</button>
+  </nav>
+
+  <div class="sheet-wrap" id="sheetWrap" hidden>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="sheet-head"><h2>取引・資産を追加</h2><button class="icon-btn" id="closeSheet">✕</button></div>
+      <div class="seg"><button id="stockMode" class="active">株式・ETF</button><button id="fundMode">投資信託</button><button id="bankMode">預金残高</button></div>
+      <form id="tradeForm">
+        <div id="investmentFields">
+          <div id="stockTransactionType">
+            <div class="form-label">売買 <span class="required">必須</span></div>
+            <div class="trade-choice"><button type="button" id="buyType" class="active">買付</button><button type="button" id="sellType">売却</button></div>
+          </div>
+          <div class="field"><label for="account">証券会社 <span class="required">必須</span></label><select id="account"><option>楽天証券</option><option>マネックス証券</option><option>SBI証券</option></select></div>
+          <div class="grid2">
+            <div class="field"><label for="accountType">口座区分 <span class="required">必須</span></label><select id="accountType"><option>NISA</option><option value="特定口座">特定</option><option value="一般口座">一般</option></select></div>
+            <div class="field"><label for="tradeDate">約定日 <span class="required">必須</span></label><input id="tradeDate" type="date"></div>
+          </div>
+          <div id="stockIdentityFields">
+            <div class="field"><label for="assetName">銘柄名 <span class="required">必須</span></label><input id="assetName" autocomplete="off" placeholder="例：NVIDIA"></div>
+            <div class="field"><label for="ticker">ティッカー <span class="required">必須</span></label><input id="ticker" autocomplete="off" autocapitalize="characters" maxlength="20" placeholder="例：NVDA"><div class="field-hint">USD銘柄は、このティッカーで保存後すぐ市場価格を取得します。</div></div>
+          </div>
+          <div id="fundIdentityFields" class="field" hidden><label for="fundName">ファンド名 <span class="required">必須</span></label><input id="fundName" placeholder="例：eMAXIS Slim 全世界株式"></div>
+          <div id="stockFields">
+            <div class="grid2"><div class="field"><label for="quantity">数量 <span class="required">必須</span></label><input id="quantity" type="number" min="0" step="any" placeholder="10"></div><div class="field"><label for="unitPrice">約定単価 <span class="required">必須</span></label><input id="unitPrice" type="number" min="0" step="any" placeholder="150"></div></div>
+            <div class="grid2"><div class="field"><label for="currency">通貨 <span class="required">必須</span></label><select id="currency"><option value="JPY">円（JPY）</option><option value="USD">米ドル（USD）</option></select></div><div class="field"><label for="fx">約定時為替 <span class="optional">任意</span></label><input id="fx" type="number" min="0" step="any" inputmode="decimal" placeholder="不明なら空欄"></div></div>
+            <div class="field"><label for="fees">手数料・税 <span class="optional">任意・円</span></label><input id="fees" type="number" min="0" step="any" inputmode="decimal" placeholder="不明なら空欄"><div class="field-hint">分からない場合は空欄のまま保存できます。0円と未登録は区別して記録します。</div></div>
+          </div>
+          <div id="fundFields" hidden>
+            <div class="grid2"><div class="field"><label for="amount">積立・買付金額</label><input id="amount" type="number" min="0" step="1" placeholder="30000"></div><div class="field"><label for="fundNav">約定基準価額（1万口）</label><input id="fundNav" type="number" min="0" step="1" placeholder="15000"></div></div>
+            <div class="field"><label for="fundQuantity">約定した口数（明細どおり）</label><input id="fundQuantity" type="number" min="1" step="1" placeholder="明細の口数を入力"><div class="field-hint">金額と基準価額からの推定口数は保存しません。</div></div><div class="notice">入力した口数：<span id="calcUnits">—</span></div>
+          </div>
+        </div>
+        <div id="bankFields" hidden>
+          <div class="field"><label for="bankName">銀行名</label><input id="bankName" value="三菱UFJ銀行"></div>
+          <div class="grid2"><div class="field"><label for="bankType">口座種別</label><select id="bankType"><option>普通預金</option><option>定期預金</option><option>その他</option></select></div><div class="field"><label for="bankDate">残高基準日</label><input id="bankDate" type="date"></div></div>
+          <div class="field"><label for="bankBalance">現在残高</label><input id="bankBalance" type="number" min="0" step="1" placeholder="500000"></div>
+        </div>
+        <button class="primary" id="saveButton" type="submit">取引を保存</button>
+        <div class="notice">約定時為替や手数料が分からなくても保存できます。その場合、取得額と損益は「未登録」と表示します。米国株・ETFの現在評価額は、市場価格とUSD/JPYから自動計算します。</div>
+      </form>
+    </div>
+  </div>
+
+  <section class="import-panel" id="csvImportPanel" hidden>
+    <div class="import-page">
+      <div class="import-head"><div><div class="section-title">SBI証券 CSVインポート</div><div class="sub">解析 → プレビュー → 変更確認 → 確定</div></div><button class="icon-btn" id="closeCsvImport" aria-label="閉じる">✕</button></div>
+
+      <div class="card import-step" id="csvSelectStep">
+        <div class="section-title">1. CSVを選択</div>
+        <div class="field"><label for="sbiCsvFile">SBI証券「約定履歴照会」のCSV</label><input id="sbiCsvFile" type="file" accept=".csv,text/csv"></div>
+        <div class="notice">ファイルは確認操作をするまでSupabaseへ送信しません。UTF-8とCP932を判定し、実際の列名を照合します。</div>
+      </div>
+
+      <div class="card import-step" id="csvPreviewStep" hidden>
+        <div class="section-title">2. 取込プレビュー</div>
+        <div id="csvSummary"></div>
+        <div id="ambiguousAccountWrap" class="warning-box" hidden>
+          CSVの「特定/一般」は口座区分を断定できません。
+          <div class="field"><label for="ambiguousAccountType">このCSVではどちらとして取り込みますか</label><select id="ambiguousAccountType"><option value="">選択してください</option><option value="特定口座">特定</option><option value="一般口座">一般</option><option value="exclude">取込対象外</option></select></div>
+        </div>
+        <div id="csvIssues"></div>
+        <div class="preview-scroll"><table class="preview-table"><thead><tr><th>売買</th><th>約定日</th><th>銘柄名</th><th>ティッカー</th><th>数量</th><th>約定単価</th><th>通貨</th><th>口座区分</th><th>手数料</th><th>為替</th><th>円換算取引額</th><th>CSV未取得項目</th></tr></thead><tbody id="csvPreviewBody"></tbody></table></div>
+        <button class="primary" id="checkCsvChanges">変更内容を確認</button>
+      </div>
+
+      <div class="card import-step" id="csvConfirmStep" hidden>
+        <div class="section-title">3. 変更内容の確認</div>
+        <div id="csvChangeSummary"></div>
+        <div class="danger-box">現在の処理ではCSVに含まれない同期間の取引も置換対象になります。反映は停止しています。内容の確認のみ行えます。</div>
+        <div class="import-actions"><button class="secondary" id="backToCsvPreview">戻る</button><button class="primary" id="applyCsvImport" disabled>安全な取込への改修待ち</button></div>
+      </div>
+
+      <div class="card import-step" id="csvDoneStep" hidden><div class="section-title">取込完了</div><div id="csvDoneMessage" class="notice"></div><button class="primary" id="finishCsvImport" style="margin-top:14px">取引履歴へ戻る</button></div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0"></script>
+  <script src="app-config.js"></script>
+  <script src="screenshot-core.js"></script>
+  <script src="screenshot-layouts.js"></script>
+  <script src="screenshot-image.js"></script>
+  <script src="cash-core.js"></script>
+  <script src="cash-entry.js"></script>
+  <script src="reconciliation-core.js"></script>
+  <script src="reconciliation-entry.js"></script>
+  <script src="screenshot-entry.js"></script>
+  <script>
+    const SUPABASE_URL=window.ASSET_FLOW_CONFIG?.supabaseUrl||'';
+    const SUPABASE_KEY=window.ASSET_FLOW_CONFIG?.supabasePublishableKey||'';
+    if(!SUPABASE_URL||!SUPABASE_KEY){
+      document.getElementById('loginError').textContent='保存先の初期設定が必要です。設定後にログインできます。';
+      document.getElementById('loginButton').disabled=true;
+      throw new Error('Asset Flow requires verified backend configuration');
+    }
+    const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    const ACCOUNTS=['楽天証券','マネックス証券','SBI証券'];
+    const MARKET_BATCH_SIZE=8;
+    const NORMAL_FRESH_MS=15*60*1000;
+    const MARKET_FRESH_MS=60*1000;
+    const CREDIT_WINDOW_MS=61*1000;
+    let trades=[],bankBalances=[],importBatches=[],csvImportReady=false,mode='stock',tradeType='buy',masked=false,currentUser=null;
+    let marketPrices=new Map(),marketBusy=false,marketStatusOverride='',apiCreditLog=[];
+    let csvImport=null,csvPrepared=null,cloudLoadVersion=0,cloudLoaded=false,screenshotPositions=[],cashScopes=[];
+    const SBI_CSV_HEADER=['約定日','銘柄','銘柄コード','市場','取引','期限','預り','課税','約定数量','約定単価','手数料/諸経費等','税額','受渡日','受渡金額/決済損益'];
+
+    const yen=n=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0);
+    const usd=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(n)||0);
+    const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    const money=n=>masked?'¥••••••':yen(n);
+    const optionalNumber=input=>input.value.trim()===''?null:Number(input.value);
+    // A quote belongs to a user, an account and an asset; legacy unscoped values are not trusted.
+    const priceKey=t=>'assetflow:price:v2:'+JSON.stringify([currentUser?.id||'local',t.accountId||t.account,t.accountType,t.assetId||t.symbol,t.kind,t.currency]);
+    const getManualPrice=t=>{const n=Number(localStorage.getItem(priceKey(t)));return Number.isFinite(n)&&n>0?n:0};
+    const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    const fresh=(row,maxAge)=>{const age=Date.now()-new Date(row?.fetched_at).getTime();return Number.isFinite(age)&&age>=0&&age<=maxAge};
+    const formatTime=value=>value&&Number.isFinite(new Date(value).getTime())?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value)):'—';
+
+    function isUsMarketWindow(){
+      const hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tokyo',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
+      return hour>=22||hour<6;
+    }
+
+    function setTheme(choice){
+      localStorage.setItem('assetflow:theme',choice);
+      let resolved=choice;
+      if(choice==='auto') resolved=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+      document.documentElement.dataset.theme=resolved;
+      document.getElementById('themeColor').content=resolved==='dark'?'#081720':'#f6f7f4';
+      document.getElementById('quickTheme').textContent=resolved==='dark'?'🌙':'☀️';
+      document.querySelectorAll('[data-theme-choice]').forEach(b=>b.classList.toggle('active',b.dataset.themeChoice===choice));
+    }
+    const savedTheme=localStorage.getItem('assetflow:theme')||'auto';
+    setTheme(savedTheme);
+    matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',()=>{if((localStorage.getItem('assetflow:theme')||'auto')==='auto')setTheme('auto')});
+    document.querySelectorAll('[data-theme-choice]').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeChoice));
+    document.getElementById('quickTheme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
+    function parseCsv(text){
+      const rows=[];let row=[],field='',quoted=false;
+      for(let i=0;i<text.length;i++){
+        const c=text[i];
+        if(quoted){
+          if(c==='"'&&text[i+1]==='"'){field+='"';i++}
+          else if(c==='"')quoted=false;
+          else field+=c;
+        }else if(c==='"')quoted=true;
+        else if(c===','){row.push(field);field=''}
+        else if(c==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field=''}
+        else field+=c;
+      }
+      if(field||row.length){row.push(field.replace(/\r$/,''));rows.push(row)}
+      if(quoted)throw new Error('CSVの引用符が閉じられていません');
+      return rows;
+    }
+
+    function decodeSbiCsv(buffer){
+      const decoders=[['UTF-8',new TextDecoder('utf-8',{fatal:true})],['CP932',new TextDecoder('shift_jis',{fatal:true})]];
+      for(const [encoding,decoder] of decoders){
+        try{
+          const text=decoder.decode(buffer);
+          if(text.includes('約定日')&&text.includes('受渡金額/決済損益'))return {text,encoding};
+        }catch(_error){}
+      }
+      throw new Error('文字コードを判定できません。SBI証券から取得したCSVか確認してください');
+    }
+
+    async function sha256(value){
+      const bytes=value instanceof ArrayBuffer?value:new TextEncoder().encode(value);
+      const digest=await crypto.subtle.digest('SHA-256',bytes);
+      return [...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
+    }
+
+    const cleanCsvValue=value=>String(value??'').trim();
+    function csvNumber(value){
+      const cleaned=cleanCsvValue(value).replace(/,/g,'');
+      if(!cleaned||cleaned==='--')return null;
+      const number=Number(cleaned);
+      return Number.isFinite(number)?number:null;
+    }
+
+    async function analyzeSbiCsv(file){
+      const buffer=await file.arrayBuffer();
+      const {text,encoding}=decodeSbiCsv(buffer);
+      const parsed=parseCsv(text);
+      const headerIndex=parsed.findIndex(row=>row.length===SBI_CSV_HEADER.length&&SBI_CSV_HEADER.every((name,index)=>cleanCsvValue(row[index])===name));
+      if(headerIndex<0)throw new Error('SBI約定履歴の14列ヘッダーと一致しません。取込は行いません');
+      const malformed=[];
+      const sourceRows=[];
+      for(let index=headerIndex+1;index<parsed.length;index++){
+        const raw=parsed[index];
+        if(!raw.some(cell=>cleanCsvValue(cell)))continue;
+        if(raw.length!==SBI_CSV_HEADER.length){malformed.push(index+1);continue}
+        if(!/^\d{4}\/\d{2}\/\d{2}$/.test(cleanCsvValue(raw[0]))){malformed.push(index+1);continue}
+        sourceRows.push({sourceRowNumber:index+1,raw:raw.map(cleanCsvValue)});
+      }
+      if(!sourceRows.length)throw new Error('取引明細が見つかりません');
+      const occurrence=new Map();
+      for(const item of sourceRows){
+        const canonical=JSON.stringify(item.raw);
+        const count=(occurrence.get(canonical)||0)+1;occurrence.set(canonical,count);
+        item.occurrence=count;item.rowKey=await sha256(canonical+'#'+count);
+      }
+      const dates=sourceRows.map(item=>item.raw[0]).sort();
+      return {
+        fileName:file.name,fileHash:await sha256(buffer),encoding,sourceRows,malformed,
+        periodStart:dates[0].replaceAll('/','-'),periodEnd:dates.at(-1).replaceAll('/','-'),
+        exactDuplicateRows:[...occurrence.values()].reduce((sum,count)=>sum+Math.max(0,count-1),0)
+      };
+    }
+
+    function prepareSbiRows(){
+      const ambiguousChoice=ambiguousAccountType.value;
+      const rows=[],unsupported=[],unresolved=[],excluded=[];
+      for(const item of csvImport.sourceRows){
+        const raw=item.raw,tradeRaw=raw[4],custody=raw[6];
+        let assetType=null,transactionType=null;
+        if(tradeRaw==='投信金額買付'){assetType='fund';transactionType='buy'}
+        else if(tradeRaw==='株式現物買'){assetType='stock';transactionType='buy'}
+        else{unsupported.push({row:item.sourceRowNumber,reason:`未対応の取引「${tradeRaw}」`});continue}
+
+        let accountType=null;
+        if(custody==='NISA(成)'||custody==='NISA(つ)')accountType='NISA';
+        else if(custody==='特定')accountType='特定口座';
+        else if(custody==='特定/一般'){
+          if(!ambiguousChoice){unresolved.push({row:item.sourceRowNumber,reason:'「特定/一般」の口座区分が未選択'});continue}
+          if(ambiguousChoice==='exclude'){excluded.push(item);continue}
+          accountType=ambiguousChoice;
+        }else{unsupported.push({row:item.sourceRowNumber,reason:`未対応の預り区分「${custody}」`});continue}
+
+        const tickerValue=cleanCsvValue(raw[2]);
+        const isJapaneseStock=assetType==='stock'&&/^\d{3}[0-9A-Z]$/.test(tickerValue);
+        if(assetType==='stock'&&!isJapaneseStock){unsupported.push({row:item.sourceRowNumber,reason:'通貨を安全に判定できない株式'});continue}
+        const quantityValue=csvNumber(raw[8]),rawUnitPrice=csvNumber(raw[9]),amountValue=csvNumber(raw[13]);
+        if(!(quantityValue>0)||!(rawUnitPrice>0)||amountValue==null){unsupported.push({row:item.sourceRowNumber,reason:'数量・単価・受渡金額が不正'});continue}
+        const feePart=csvNumber(raw[10]),taxPart=csvNumber(raw[11]);
+        const feeValue=feePart==null&&taxPart==null?null:(feePart||0)+(taxPart||0);
+        const missing=[];
+        if(!tickerValue)missing.push('ティッカー');
+        if(feeValue==null)missing.push('手数料');
+        missing.push('為替');
+        const rawObject=Object.fromEntries(SBI_CSV_HEADER.map((name,index)=>[name,raw[index]]));
+        rows.push({
+          source_row_number:item.sourceRowNumber,row_key:item.rowKey,transaction_type:transactionType,
+          traded_at:raw[0].replaceAll('/','-'),name:raw[1],ticker:tickerValue||null,asset_type:assetType,
+          quantity:quantityValue,unit_price:assetType==='fund'?rawUnitPrice/10000:rawUnitPrice,
+          display_unit_price:rawUnitPrice,currency:'JPY',account_type:accountType,fee:feeValue,
+          exchange_rate:null,amount:amountValue,missing,raw_row:rawObject,raw_custody:custody
+        });
+      }
+      return {rows,unsupported,unresolved,excluded};
+    }
+
+    function renderCsvPreview(){
+      if(!csvImport)return;
+      csvPrepared=prepareSbiRows();
+      const counts={fund:0,stock:0};csvPrepared.rows.forEach(row=>counts[row.asset_type]++);
+      csvSummary.innerHTML=`<div class="import-summary"><div class="summary-box"><span class="small">取込候補</span><b>${csvPrepared.rows.length.toLocaleString()}件</b></div><div class="summary-box"><span class="small">期間</span><b style="font-size:12px">${esc(csvImport.periodStart)}<br>〜 ${esc(csvImport.periodEnd)}</b></div><div class="summary-box"><span class="small">文字コード</span><b>${esc(csvImport.encoding)}</b></div></div><div class="meta">投資信託 ${counts.fund.toLocaleString()}件・国内株式 ${counts.stock.toLocaleString()}件・ファイルSHA-256 ${esc(csvImport.fileHash.slice(0,12))}…</div>`;
+      const issueParts=[];
+      if(csvImport.exactDuplicateRows)issueParts.push(`同一内容の行 ${csvImport.exactDuplicateRows}件は別注文の可能性があるため保持します。`);
+      if(csvImport.malformed.length)issueParts.push(`形式不正 ${csvImport.malformed.length}件は取込できません。`);
+      if(csvPrepared.unsupported.length)issueParts.push(`未対応 ${csvPrepared.unsupported.length}件は取込できません。`);
+      if(csvPrepared.unresolved.length)issueParts.push(`口座区分未選択 ${csvPrepared.unresolved.length}件があります。`);
+      if(csvPrepared.excluded.length)issueParts.push(`「特定/一般」 ${csvPrepared.excluded.length}件を除外します。`);
+      csvIssues.innerHTML=issueParts.length?`<div class="warning-box">${issueParts.map(esc).join('<br>')}</div>`:'';
+      csvPreviewBody.innerHTML=csvPrepared.rows.map(row=>`<tr><td>${row.transaction_type==='sell'?'売却':'買付'}</td><td>${esc(row.traded_at)}</td><td>${esc(row.name)}</td><td class="${row.ticker?'':'missing'}">${esc(row.ticker||'未取得')}</td><td>${Number(row.quantity).toLocaleString()}</td><td>${Number(row.display_unit_price).toLocaleString()}</td><td>${row.currency}</td><td>${esc(row.account_type)}</td><td class="${row.fee==null?'missing':''}">${row.fee==null?'未取得':yen(row.fee)}</td><td class="missing">未取得</td><td>${yen(row.amount)}</td><td class="missing">${esc(row.missing.join('・'))}</td></tr>`).join('');
+      checkCsvChanges.disabled=!!(csvImport.malformed.length||csvPrepared.unsupported.length||csvPrepared.unresolved.length||!csvPrepared.rows.length);
+    }
+
+    function holdings(){
+      const map=new Map();
+      const ordered=trades.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+      ordered.forEach(t=>{
+        const k=JSON.stringify([t.accountId||t.account,t.accountType,t.assetId||t.symbol,t.kind,t.currency]);
+        if(!map.has(k))map.set(k,{...t,quantity:0,cost:0,costKnown:true,realized:0,realizedKnown:true,issues:[],days:new Map()});
+        const h=map.get(k),qty=Number(t.quantity),amount=t.value==null?null:Number(t.value);
+        if(!Number.isFinite(qty)||qty<=0||!['buy','sell'].includes(t.transactionType)){
+          h.issues.push('数量または取引区分を確認');return;
+        }
+        if(t.date){
+          const types=h.days.get(t.date)||new Set();types.add(t.transactionType);h.days.set(t.date,types);
+          if(types.size>1){h.costKnown=false;h.realizedKnown=false;h.issues.push('同日売買の約定順を確認')}
+        }
+        const amountKnown=amount!==null&&Number.isFinite(amount)&&amount>=0;
+        if(t.transactionType==='sell'){
+          if(qty>h.quantity+1e-8){h.issues.push('売却数量が記録上の保有数量を超過');h.quantityInvalid=true;h.costKnown=false;h.realizedKnown=false}
+          const avg=h.costKnown&&h.quantity>0?h.cost/h.quantity:null;
+          h.quantity-=qty;
+          if(avg!==null){h.cost-=avg*qty;if(amountKnown)h.realized+=amount-avg*qty;else h.realizedKnown=false}
+          else{h.costKnown=false;h.realizedKnown=false}
+          if(Math.abs(h.quantity)<1e-8&&!h.quantityInvalid){h.quantity=0;h.cost=0;h.costKnown=true}
+        }else{
+          h.quantity+=qty;if(amountKnown)h.cost+=amount;else h.costKnown=false;
+        }
+      });
+      let result=[...map.values()].filter(h=>h.quantity>1e-8||h.quantityInvalid||h.issues.includes('数量または取引区分を確認')).map(h=>({...h,issues:[...new Set(h.issues)]}));
+      const oldSnapshotTotals=new Set(result.map(h=>JSON.stringify([h.accountId,h.assetId])));
+      const snapshotKeys=new Set(screenshotPositions.map(p=>JSON.stringify([p.account_id,p.asset_id])));
+      result=result.filter(h=>!snapshotKeys.has(JSON.stringify([h.accountId,h.assetId])));
+      for(const p of screenshotPositions){
+        const qty=Number(p.quantity);if(qty===0)continue;
+        const a=p.assets,knownCost=(p.cost_currency||a.currency)==='JPY'&&p.cost_total!=null;
+        const scopeLabels={account_total:'',nisa_growth:'NISA成長投資枠',nisa_accumulation:'NISAつみたて投資枠',legacy_nisa:'旧一般NISA',legacy_accumulation:'旧つみたてNISA'};
+        const partitioned=p.holding_scope&&p.holding_scope!=='account_total'||p.distribution_course&&p.distribution_course!=='total';
+        const scopeIssue=partitioned&&oldSnapshotTotals.has(JSON.stringify([p.account_id,p.asset_id]))?'旧履歴の合計と枠別・コース別残高の対応未確認':null;
+        result.push({accountId:p.account_id,assetId:p.asset_id,account:p.accounts.institution,accountType:p.accounts.account_type,
+          symbol:a.name,ticker:a.ticker,kind:a.asset_type,currency:a.currency,quantity:qty,quantityExact:p.quantity,scopeLabel:[scopeLabels[p.holding_scope]||'',{receive:'受取コース',reinvest:'再投資コース'}[p.distribution_course]||''].filter(Boolean).join('・'),
+          quantityInvalid:!Number.isFinite(qty)||Math.abs(qty)>Number.MAX_SAFE_INTEGER,
+          cost:knownCost?Number(p.cost_total):0,costKnown:knownCost,realized:0,realizedKnown:false,issues:scopeIssue?[scopeIssue]:[],
+          screenshot:p,date:p.as_of,transactionType:'snapshot'});
+      }
+      return result;
+    }
+
+    function marketTicker(h){
+      if(h.kind!=='stock'||h.currency!=='USD')return '';
+      const ticker=String(h.ticker||h.symbol||'').trim().toUpperCase();
+      return /^[A-Z0-9.^:/-]{1,20}$/.test(ticker)?ticker:'';
+    }
+
+    function marketRow(symbol){return marketPrices.get(String(symbol||'').trim().toUpperCase())||null}
+    function usdJpy(){return Number(marketRow('USD/JPY')?.price)||0}
+
+    function valuation(h){
+      const missing={value:null,source:'missing',price:null,fx:null,row:null};
+      if(h.quantityInvalid||!Number.isFinite(h.quantity)||h.quantity<=0||h.issues?.some(x=>x==='数量または取引区分を確認'||x==='旧履歴の合計と枠別・コース別残高の対応未確認'))return missing;
+      const ticker=marketTicker(h),row=ticker?marketRow(ticker):null,fx=usdJpy();
+      if(h.screenshot?.statement_value!==null&&h.screenshot?.statement_value!==undefined){
+        const ccy=h.screenshot.statement_currency||h.currency;
+        const raw=Number(h.screenshot.statement_value),value=ccy==='JPY'?raw:ccy==='USD'&&Number.isFinite(fx)&&fx>0?raw*fx:null;
+        if(value!==null&&Number.isFinite(value)&&value>=0)return {value,source:'statement',price:null,fx:ccy==='JPY'?1:fx,row:null};
+      }
+      if(row&&Number.isFinite(Number(row.price))&&Number(row.price)>0&&Number.isFinite(fx)&&fx>0){
+        const value=Number(row.price)*h.quantity*fx;
+        if(Number.isFinite(value))return {value,source:'market',price:Number(row.price),fx,row};
+      }
+      const manual=getManualPrice(h),value=manual*h.quantity;
+      if(manual>0&&Number.isFinite(value))return {value,source:'manual',price:manual,fx:1,row:null};
+      return missing;
+    }
+
+    function bankValuation(b){
+      if(b.balance==null||!Number.isFinite(b.balance)||b.balance<0||b.issue)return null;
+      if(b.currency==='JPY')return b.balance;
+      const fx=usdJpy();
+      return b.currency==='USD'&&Number.isFinite(fx)&&fx>0&&Number.isFinite(b.balance*fx)?b.balance*fx:null;
+    }
+
+    function portfolioSummary(){
+      const hs=holdings(),values=hs.map(valuation),bankValues=bankBalances.map(bankValuation);
+      const missing=values.filter(v=>v.value===null).length+bankValues.filter(v=>v===null).length;
+      const investment=values.reduce((sum,v)=>sum+(v.value??0),0);
+      const cash=bankValues.reduce((sum,v)=>sum+(v??0),0);
+      return {investment,cash,subtotal:investment+cash,missing,empty:!hs.length&&!bankBalances.length};
+    }
+
+    function marketCandidates(){
+      const byTicker=new Map();
+      holdings().forEach(h=>{
+        const ticker=marketTicker(h);if(!ticker)return;
+        const weight=valuation(h).value||h.cost||0;
+        if(!byTicker.has(ticker))byTicker.set(ticker,{ticker,weight:0});
+        byTicker.get(ticker).weight+=weight;
+      });
+      return [...byTicker.values()].sort((a,b)=>b.weight-a.weight);
+    }
+
+    function totalsByAccount(){
+      const hs=holdings(),names=[...new Set(hs.map(h=>h.account))];
+      return names.map(name=>{
+        const items=hs.filter(h=>h.account===name),values=items.map(valuation);
+        return {name,cost:items.reduce((s,h)=>s+(h.costKnown?h.cost:0),0),costKnown:items.every(h=>h.costKnown),
+          value:values.reduce((s,v)=>s+(v.value??0),0),missing:values.filter(v=>v.value===null).length};
+      });
+    }
+
+    function renderImportHistory(){
+      const el=document.getElementById('importHistory');if(!el)return;
+      const statusLabel={applied:'反映済み',superseded:'置換済み',undone:'取消済み',processing:'処理中'};
+      el.innerHTML=importBatches.length?importBatches.map(batch=>`<div class="import-history-row"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="name">${esc(batch.file_name)}</div><div class="meta">${esc(batch.period_start)}〜${esc(batch.period_end)}・${Number(batch.imported_count).toLocaleString()}件取込・${Number(batch.replaced_count).toLocaleString()}件置換</div></div><div style="text-align:right"><span class="status-chip ${batch.status==='undone'?'undone':''}">${statusLabel[batch.status]||esc(batch.status)}</span></div></div></div>`).join(''):'<div class="empty">CSV取込履歴はまだありません</div>';
+    }
+
+    function setMarketStatus(text){marketStatusOverride=text;renderMarketStatus()}
+
+    function renderMarketStatus(){
+      const el=document.getElementById('marketStatus'),button=document.getElementById('refreshPrices');
+      if(!el||!button)return;
+      button.disabled=marketBusy;
+      button.textContent=marketBusy?'更新中…':'市場価格を更新';
+      el.classList.toggle('live',isUsMarketWindow());
+      if(marketStatusOverride){el.textContent=marketStatusOverride;return}
+      const candidates=marketCandidates();
+      if(!candidates.length){el.textContent='自動更新対象の米国株・ETFはまだありません。';return}
+      const rows=candidates.map(c=>marketRow(c.ticker)).filter(Boolean);
+      const covered=rows.length;
+      const times=rows.map(r=>new Date(r.fetched_at).getTime()).filter(Number.isFinite);
+      const oldest=times.length?new Date(Math.min(...times)):null;
+      const modeText=isUsMarketWindow()?'・米国市場モード':'';
+      const fxText=marketRow('USD/JPY')?'・USD/JPY取得済み':'・USD/JPY未取得';
+      el.textContent=`市場価格 ${covered}/${candidates.length}銘柄${fxText}${oldest?'・最古更新 '+formatTime(oldest):''}${modeText}`;
+    }
+
+    function render(){
+      const hs=holdings(),grouped=totalsByAccount();
+      const summary=portfolioSummary(),bankTotal=summary.cash,invTotal=summary.investment,total=summary.subtotal;
+      const complete=cloudLoaded&&!summary.missing&&!summary.empty;
+      document.getElementById('totalValue').textContent=!cloudLoaded?'未確認':summary.empty?'未登録':complete?money(total):'未確定';
+      document.getElementById('donutTotal').textContent=complete?money(total):'未確定';
+      document.getElementById('invPct').textContent=complete&&total?Math.round(invTotal/total*100)+'%':'—';
+      document.getElementById('cashPct').textContent=complete&&total?Math.round(bankTotal/total*100)+'%':'—';
+      document.getElementById('deltaText').textContent=!cloudLoaded?'残高データの読込・確認が必要です':summary.missing?summary.missing+'件を評価できません・評価できた分 '+money(total):'残高照合前・各明細の基準日を確認';
+      document.getElementById('allocationDonut').style.background=complete&&total?'conic-gradient(var(--brand) 0 '+(invTotal/total*100)+'%,#89c8f5 0 100%)':'var(--line)';
+
+
+      document.getElementById('accounts').innerHTML=grouped.map(a=>`
+        <div class="account-row">
+          <div><div class="name">${esc(a.name)}</div><div class="meta">NISA・特定・一般を合算</div></div>
+          <div><div class="value">${a.missing?'未確定':money(a.value)}</div><div class="small">${a.missing?a.missing+'件の評価額を確認':'参考評価額・照合前'}</div></div>
+        </div>`).join('');
+
+      document.getElementById('banks').innerHTML=bankBalances.length?bankBalances.map(b=>`
+        <div class="account-row">
+          <div><div class="name">${esc(b.name)}</div><div class="meta">${esc(b.type)}・${esc(b.date)}時点</div></div>
+          <div class="value">${bankValuation(b)===null?'残高・通貨を確認':money(bankValuation(b))}</div>
+        </div>`).join(''):'<div class="empty">預金残高はまだありません</div>';
+
+      document.getElementById('holdings').innerHTML=hs.length?hs.map((h,i)=>{
+        const v=valuation(h),pl=h.costKnown&&v.value!==null?v.value-h.cost:null,rate=pl!==null&&h.cost?pl/h.cost*100:0;
+        const unit=h.kind==='fund'?'口':'株',ticker=marketTicker(h);
+        let priceUi='';
+        if(ticker){
+          const row=marketRow(ticker),fx=usdJpy();
+          const copy=row&&fx>0?`${ticker} ${usd(row.price)} / USDJPY ${fx.toFixed(2)}・価格取得 ${formatTime(row.fetched_at)} / 為替取得 ${formatTime(marketRow('USD/JPY')?.fetched_at)}（価格基準時刻は未確認）`:`${ticker} 市場価格未取得`;
+          priceUi=`<div class="market-line"><span class="market-copy">${copy}</span><button class="mini-action one-refresh" data-ticker="${esc(ticker)}" ${marketBusy?'disabled':''}>この銘柄を更新</button></div>`;
+          if(!row||fx<=0){
+            const p=getManualPrice(h);
+            priceUi+=`<div class="asset-price"><span class="small">未取得時の手動価格（1株・円）</span><input class="manual-price" data-index="${i}" type="number" min="0" step="any" value="${p||''}" placeholder="手入力"></div>`;
+          }
+        }else{
+          const p=getManualPrice(h)*(h.kind==='fund'?10000:1);
+          priceUi=`<div class="asset-price"><span class="small">${h.kind==='fund'?'基準価額（1万口・円）':'現在価格（1株・円）'}</span><input class="manual-price" data-index="${i}" type="number" min="0" step="any" value="${p||''}" placeholder="手入力"></div>`;
+        }
+        return `<div class="asset-row">
+          <div>
+            <div class="name">${esc(h.symbol)}</div>
+            <div class="meta">${esc(h.account)}・${esc(h.accountType)}${h.scopeLabel?'・'+esc(h.scopeLabel):''}・${h.quantityExact?esc(h.quantityExact.replace(/(\.\d*?[1-9])0+$/,'$1').replace(/\.0+$/,'')):Number(h.quantity).toLocaleString()}${unit}</div>${h.screenshot?'<div class="meta">画像確認 '+formatTime(h.screenshot.as_of)+'・取得単価 '+(h.screenshot.acquisition_price==null?'不明':esc(h.screenshot.acquisition_price)+' '+esc(h.currency)+' / '+h.screenshot.price_basis+'単位')+'</div>':''}${h.issues?.length?'<div class="warning-box">'+h.issues.map(esc).join('・')+'</div>':''}
+            ${priceUi}
+          </div>
+          <div>
+            <div class="value">${v.value===null?'評価額未取得':money(v.value)}</div>
+            <div class="small ${pl!=null&&pl>=0?'gain':pl!=null?'loss':''}">${v.value===null?'価格・為替・数量を確認':pl===null?'取得額または約定順が不明':masked?'損益非表示':(pl>=0?'+':'')+yen(pl)+' / '+(rate>=0?'+':'')+rate.toFixed(1)+'%'}<br>${v.source==='statement'?'画像の評価額・'+formatTime(h.screenshot.as_of):v.source==='manual'?'手入力・この端末のみ':v.source==='market'?'参考価格・残高照合前':''}</div>
+          </div>
+        </div>`;
+      }).join(''):'<div class="empty">取引を追加すると保有資産が表示されます</div>';
+
+      document.querySelectorAll('.manual-price').forEach(inp=>{
+        inp.onchange=()=>{
+          const h=hs[Number(inp.dataset.index)],v=Number(inp.value)/(h.kind==='fund'?10000:1);
+          if(Number.isFinite(v)&&v>0)localStorage.setItem(priceKey(h),String(v));else localStorage.removeItem(priceKey(h));
+          render();
+        };
+      });
+      document.querySelectorAll('.one-refresh').forEach(btn=>btn.onclick=()=>refreshOneTicker(btn.dataset.ticker));
+
+      const sourceLabel={manual:'手入力',csv:'CSV',estimated:'推定'};
+      const rows=trades.slice().reverse().map(t=>`
+        <div class="tx">
+          <div><div class="name">${t.transactionType==='sell'?'売却':'買付'}・${esc(t.symbol)}${t.ticker&&t.ticker!==t.symbol?' ('+esc(t.ticker)+')':''}</div><div class="meta">${esc(t.account)}・${esc(t.accountType)}・${esc(t.date)}・${sourceLabel[t.dataSource]||'手入力'}</div>${t.kind==='stock'?`<div class="small">約定時為替 ${t.exchangeRate==null?'未登録':Number(t.exchangeRate).toLocaleString()}・手数料 ${t.fee==null?'未登録':yen(t.fee)}</div>`:''}</div>
+          <div><div class="value">${t.value==null?'取引額未登録':money(t.value)}</div><div class="small">${t.kind==='fund'?Number(t.quantity).toLocaleString()+'口':Number(t.quantity)+'株'}</div></div>
+        </div>`).join('');
+      document.getElementById('history').innerHTML=rows||'<div class="empty">取引はまだありません</div>';
+      renderImportHistory();
+      renderMarketStatus();
+    }
+
+    function applyMarketRows(rows){
+      (rows||[]).forEach(row=>{
+        if(!row?.symbol)return;
+        marketPrices.set(String(row.symbol).toUpperCase(),{...row,price:Number(row.price)});
+      });
+    }
+
+    async function loadMarketCache(){
+      const {data,error}=await db.functions.invoke('market-prices',{body:{action:'cache'}});
+      if(error)throw error;
+      applyMarketRows(data?.prices||[]);
+      render();
+    }
+
+    async function reserveCredits(credits){
+      while(true){
+        const now=Date.now();
+        apiCreditLog=apiCreditLog.filter(x=>now-x.at<CREDIT_WINDOW_MS);
+        const used=apiCreditLog.reduce((s,x)=>s+x.credits,0);
+        if(used+credits<=8){apiCreditLog.push({at:now,credits});return}
+        const oldest=Math.min(...apiCreditLog.map(x=>x.at));
+        const wait=Math.max(1000,oldest+CREDIT_WINDOW_MS-now+250);
+        setMarketStatus(`API制限を守るため次の価格取得まで約${Math.ceil(wait/1000)}秒待機中…`);
+        await sleep(wait);
+      }
+    }
+
+    async function invokePriceBatch(symbols){
+      await reserveCredits(symbols.length);
+      const {data,error}=await db.functions.invoke('market-prices',{body:{symbols}});
+      if(error)throw error;
+      if(!data?.ok)throw new Error(data?.error?.message||'市場価格の取得に失敗しました');
+      applyMarketRows(data.prices||[]);
+      return data.prices||[];
+    }
+
+    async function refreshPortfolioPrices({force=false,reason='manual'}={}){
+      if(marketBusy){setMarketStatus('市場価格を更新中です。完了までそのままお待ちください。');return}
+      const candidates=marketCandidates();
+      if(!candidates.length){marketStatusOverride='';renderMarketStatus();return}
+      const freshness=isUsMarketWindow()?MARKET_FRESH_MS:NORMAL_FRESH_MS;
+      const targets=force?candidates:candidates.filter(c=>!fresh(marketRow(c.ticker),freshness));
+      const fxNeeds=force||!fresh(marketRow('USD/JPY'),freshness);
+      let symbols=targets.map(c=>c.ticker);
+      if(fxNeeds)symbols=['USD/JPY',...symbols];
+      if(!symbols.length){marketStatusOverride='';renderMarketStatus();return}
+
+      marketBusy=true;
+      let doneTickers=0;
+      const totalTickers=targets.length;
+      try{
+        for(let i=0;i<symbols.length;i+=MARKET_BATCH_SIZE){
+          const batch=symbols.slice(i,i+MARKET_BATCH_SIZE);
+          const nextDone=Math.min(totalTickers,doneTickers+batch.filter(s=>s!=='USD/JPY').length);
+          setMarketStatus(`${reason==='startup'?'起動時':'市場'}更新中 ${nextDone}/${totalTickers}銘柄${batch.includes('USD/JPY')?'・為替も更新':''}`);
+          await invokePriceBatch(batch);
+          doneTickers=nextDone;
+          render();
+        }
+      }catch(error){
+        console.error(error);
+        setMarketStatus('市場価格の更新に失敗しました。少し待ってからもう一度お試しください。');
+        await sleep(1800);
+      }finally{
+        marketBusy=false;marketStatusOverride='';render();
+      }
+    }
+
+    async function refreshOneTicker(ticker){
+      ticker=String(ticker||'').trim().toUpperCase();
+      if(!ticker)return;
+      if(marketBusy){setMarketStatus('全体の市場価格を更新中です。完了後に銘柄更新できます。');return}
+      marketBusy=true;
+      try{
+        setMarketStatus(`${ticker} を最新価格に更新中…`);
+        await invokePriceBatch(['USD/JPY',ticker]);
+        render();
+      }catch(error){
+        console.error(error);
+        setMarketStatus(`${ticker} の更新に失敗しました。少し待ってから再度お試しください。`);
+        await sleep(1800);
+      }finally{
+        marketBusy=false;marketStatusOverride='';render();
+      }
+    }
+
+    async function maybeRefreshOnStartup(){
+      const candidates=marketCandidates();if(!candidates.length)return;
+      const freshness=isUsMarketWindow()?MARKET_FRESH_MS:NORMAL_FRESH_MS;
+      const stale=candidates.some(c=>!fresh(marketRow(c.ticker),freshness))||!fresh(marketRow('USD/JPY'),freshness);
+      if(stale)refreshPortfolioPrices({force:false,reason:'startup'});
+    }
+
+    function go(id){
+      document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.go===id));
+    }
+    document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+    document.getElementById('mask').onclick=()=>{masked=!masked;render()};
+    document.getElementById('refreshPrices').onclick=()=>refreshPortfolioPrices({force:true,reason:'manual'});
+
+    const sheet=document.getElementById('sheetWrap');
+    const openSheet=(nextMode='stock')=>{setMode(nextMode);sheet.hidden=false};
+    document.getElementById('openSheet').onclick=()=>openSheet('stock');
+    document.getElementById('closeSheet').onclick=()=>sheet.hidden=true;
+    sheet.onclick=e=>{if(e.target===sheet)sheet.hidden=true};
+    document.getElementById('addBankShortcut').onclick=()=>openSheet('bank');
+
+    function resetCsvImport(){
+      csvImport=null;csvPrepared=null;sbiCsvFile.value='';ambiguousAccountType.value='';
+      csvSelectStep.hidden=false;csvPreviewStep.hidden=true;csvConfirmStep.hidden=true;csvDoneStep.hidden=true;
+      csvSummary.innerHTML='';csvIssues.innerHTML='';csvPreviewBody.innerHTML='';csvChangeSummary.innerHTML='';
+    }
+    document.getElementById('openCsvImport').onclick=()=>{resetCsvImport();csvImportPanel.hidden=false};
+    document.getElementById('closeCsvImport').onclick=()=>{csvImportPanel.hidden=true;resetCsvImport()};
+    document.getElementById('finishCsvImport').onclick=()=>{csvImportPanel.hidden=true;resetCsvImport();go('historyView')};
+
+    sbiCsvFile.onchange=async()=>{
+      const file=sbiCsvFile.files?.[0];if(!file)return;
+      sbiCsvFile.disabled=true;syncStatus.textContent='CSVを解析中…';
+      try{
+        csvImport=await analyzeSbiCsv(file);
+        const hasAmbiguous=csvImport.sourceRows.some(item=>item.raw[6]==='特定/一般');
+        ambiguousAccountWrap.hidden=!hasAmbiguous;
+        csvPreviewStep.hidden=false;csvConfirmStep.hidden=true;csvDoneStep.hidden=true;
+        renderCsvPreview();syncStatus.textContent='CSV解析済み・まだ反映していません';
+      }catch(error){
+        csvImport=null;alert('CSVを解析できませんでした：'+error.message);syncStatus.textContent='CSV解析エラー';
+      }finally{sbiCsvFile.disabled=false}
+    };
+    ambiguousAccountType.onchange=renderCsvPreview;
+
+    checkCsvChanges.onclick=async()=>{
+      renderCsvPreview();
+      if(checkCsvChanges.disabled||!csvPrepared?.rows.length)return;
+      const accountTypes=[...new Set(csvPrepared.rows.map(row=>row.account_type))];
+      const dates=csvPrepared.rows.map(row=>row.traded_at).sort();
+      checkCsvChanges.disabled=true;checkCsvChanges.textContent='確認中…';
+      try{
+        const {data,error}=await db.rpc('preview_sbi_csv_import',{p_period_start:dates[0],p_period_end:dates.at(-1),p_account_types:accountTypes});
+        if(error)throw error;
+        csvPrepared.scope={periodStart:dates[0],periodEnd:dates.at(-1),accountTypes};
+        csvPrepared.changePreview=data;
+        csvChangeSummary.innerHTML=`<div class="import-summary"><div class="summary-box"><span class="small">CSVから登録</span><b>${csvPrepared.rows.length.toLocaleString()}件</b></div><div class="summary-box"><span class="small">置換対象</span><b>${Number(data.existing_count||0).toLocaleString()}件</b></div><div class="summary-box"><span class="small">うち手入力</span><b>${Number(data.manual_count||0).toLocaleString()}件</b></div></div><div class="meta">SBI証券・${accountTypes.map(esc).join(' / ')}・${esc(dates[0])}〜${esc(dates.at(-1))}</div>`;
+        csvConfirmStep.hidden=false;csvConfirmStep.scrollIntoView({behavior:'smooth',block:'start'});
+      }catch(error){alert('変更内容を確認できませんでした：'+error.message)}
+      finally{checkCsvChanges.disabled=false;checkCsvChanges.textContent='変更内容を確認'}
+    };
+
+    backToCsvPreview.onclick=()=>{csvConfirmStep.hidden=true;csvPreviewStep.scrollIntoView({behavior:'smooth',block:'start'})};
+    applyCsvImport.onclick=()=>alert('現行の期間置換は停止しています。安全な差分取込の検証後に再開します。');
+
+    async function undoCsvImport(){
+      alert('取消処理も残高への影響を検証するまで停止しています。');
+    }
+
+    function setMode(next){
+      mode=next;
+      investmentFields.hidden=next==='bank';bankFields.hidden=next!=='bank';
+      stockFields.hidden=next!=='stock';fundFields.hidden=next!=='fund';
+      stockTransactionType.hidden=next!=='stock';stockIdentityFields.hidden=next!=='stock';fundIdentityFields.hidden=next!=='fund';
+      stockMode.classList.toggle('active',next==='stock');fundMode.classList.toggle('active',next==='fund');bankMode.classList.toggle('active',next==='bank');
+      saveButton.textContent=next==='bank'?'預金残高を保存':next==='stock'&&tradeType==='sell'?'売却を保存':'取引を保存';
+    }
+    stockMode.onclick=()=>setMode('stock');fundMode.onclick=()=>setMode('fund');bankMode.onclick=()=>setMode('bank');
+    function setTradeType(next){
+      tradeType=next;
+      buyType.classList.toggle('active',next==='buy');sellType.classList.toggle('active',next==='sell');
+      saveButton.textContent=next==='sell'?'売却を保存':'取引を保存';
+    }
+    buyType.onclick=()=>setTradeType('buy');sellType.onclick=()=>setTradeType('sell');
+    ticker.oninput=()=>{ticker.value=ticker.value.toUpperCase().replace(/[^A-Z0-9.^:/-]/g,'')};
+    currency.onchange=()=>{
+      const isJpy=currency.value==='JPY';fx.disabled=isJpy;fx.value='';
+      fx.placeholder=isJpy?'円建てでは不要':'不明なら空欄';
+    };
+    function calcFund(){const u=Number(fundQuantity.value);calcUnits.textContent=Number.isSafeInteger(u)&&u>0?u.toLocaleString()+'口':'—';return Number.isSafeInteger(u)&&u>0?u:0}
+    fundQuantity.oninput=calcFund;
+    tradeDate.value=today();bankDate.value=today();
+
+    async function getAccount(institution,type,currency='JPY'){
+      let {data,error}=await db.from('accounts').select('id').eq('institution',institution).eq('account_type',type).maybeSingle();
+      if(error)throw error;if(data)return data.id;
+      ({data,error}=await db.from('accounts').insert({name:institution,institution,account_type:type,currency}).select('id').single());
+      if(error)throw error;return data.id;
+    }
+    async function getAsset(name,tickerValue,type,currency){
+      const normalizedTicker=String(tickerValue||name).trim().toUpperCase();
+      let query=db.from('assets').select('id,name,ticker,currency').eq('asset_type',type);
+      query=type==='stock'?query.eq('ticker',normalizedTicker).eq('currency',currency):query.eq('name',name);
+      let {data,error}=await query.limit(1).maybeSingle();
+      if(error)throw error;
+      if(data){
+        if(type==='stock'&&(data.name!==name||data.ticker!==normalizedTicker||data.currency!==currency)){
+          const {error:updateError}=await db.from('assets').update({name,ticker:normalizedTicker,currency}).eq('id',data.id);
+          if(updateError)throw updateError;
+        }
+        return data.id;
+      }
+      ({data,error}=await db.from('assets').insert({name,ticker:normalizedTicker,asset_type:type,currency}).select('id').single());
+      if(error)throw error;return data.id;
+    }
+    // Fail closed on truncated reads, count changes or overlapping pages.
+    // A server-side snapshot is still required for atomic cross-table consistency.
+    async function selectAllRows(queryFactory){
+      const rows=[],ids=new Set();let expected=null;
+      while(true){
+        const result=await queryFactory().range(rows.length,rows.length+499);
+        if(result.error)throw result.error;
+        if(!Number.isSafeInteger(result.count)||result.count<0)throw new Error('全件数を確認できません');
+        if(expected===null)expected=result.count;
+        if(result.count!==expected)throw new Error('読込中にデータが変更されました。再読込してください');
+        for(const row of result.data||[]){
+          if(!row.id||ids.has(row.id))throw new Error('取得範囲に重複または識別子の不足があります');
+          ids.add(row.id);rows.push(row);
+        }
+        if(rows.length===expected)return rows;
+        if(!result.data?.length||rows.length>expected)throw new Error('残高データを全件取得できません');
+      }
+    }
+
+    function latestBankBalances(rows){
+      const map=new Map();
+      rows.slice().sort((a,b)=>String(b.recorded_at).localeCompare(String(a.recorded_at))).forEach(b=>{
+        if(!b.account_id)throw new Error('預金口座の識別子がありません');
+        const previous=map.get(b.account_id);
+        if(previous){
+          if(previous.date===b.recorded_at&&(b.balance==null||Number(b.balance)!==previous.balance))previous.issue='同じ基準日の残高が複数あります';
+          return;
+        }
+        const date=String(b.recorded_at||'');
+        map.set(b.account_id,{id:b.id,accountId:b.account_id,name:b.accounts?.institution||'口座未確認',type:b.accounts?.account_type||'',
+          balance:b.balance==null?null:Number(b.balance),currency:b.accounts?.currency||null,date,
+          issue:!/^\d{4}-\d{2}-\d{2}/.test(date)||date.slice(0,10)>today()?'残高基準日を確認':null});
+      });
+      return [...map.values()];
+    }
+
+    async function loadCloud(){
+      const version=++cloudLoadVersion,userId=currentUser?.id;
+      cloudLoaded=false;render();syncStatus.textContent='クラウドから読込中…';
+      const [txRows,bankRows,importResult,screenshotResult,cashResult]=await Promise.all([
+        selectAllRows(()=>db.from('transactions').select('id,account_id,traded_at,quantity,unit_price,amount,fee,exchange_rate,data_source,transaction_type,accounts(institution,account_type),assets(id,name,ticker,asset_type,currency)',{count:'exact'}).order('traded_at').order('id')),
+        selectAllRows(()=>db.from('balance_snapshots').select('id,account_id,balance,recorded_at,accounts(institution,account_type,currency)',{count:'exact'}).order('recorded_at',{ascending:false}).order('id')),
+        db.from('import_batches').select('id,file_name,file_hash,period_start,period_end,account_types,row_count,imported_count,replaced_count,status,created_at').order('created_at',{ascending:false}).limit(10),
+        db.rpc('list_screenshot_positions'),
+        db.rpc('list_cash_observations')
+      ]);
+      if(version!==cloudLoadVersion||userId!==currentUser?.id)return;
+      if(txRows.some(t=>!t.accounts||!t.assets||!t.account_id))throw new Error('取引に対応する口座・銘柄がありません');
+      const nextTrades=txRows.map(t=>({
+        id:t.id,accountId:t.account_id,assetId:t.assets.id,kind:t.assets.asset_type,account:t.accounts.institution,accountType:t.accounts.account_type,
+        date:t.traded_at,symbol:t.assets.name||'',ticker:t.assets.ticker||'',currency:t.assets.currency,
+        quantity:Number(t.quantity),unitPrice:Number(t.unit_price),value:t.amount==null?null:Number(t.amount),fee:t.fee==null?null:Number(t.fee),
+        exchangeRate:t.exchange_rate==null?null:Number(t.exchange_rate),dataSource:t.data_source||'manual',transactionType:t.transaction_type
+      }));
+      if(screenshotResult.error)throw new Error('スクショ登録の保存機能を設定してください。残高を確定表示しません');
+      if(cashResult.error)throw new Error('預り金の保存機能を設定してください。残高を確定表示しません');
+      const nextCash=cashResult.data||[];
+      const nextBanks=window.CashCore.mergeBalances(latestBankBalances(bankRows),nextCash);
+      cashScopes=nextCash;
+      screenshotPositions=screenshotResult.data||[];
+      trades=nextTrades;bankBalances=nextBanks;cloudLoaded=true;
+      csvImportReady=!importResult.error;importBatches=csvImportReady?(importResult.data||[]):[];
+      openCsvImport.disabled=false;openCsvImport.textContent='SBI CSVを確認';
+      render();syncStatus.textContent='登録データを読込済み・金融機関との残高照合は未実施';
+    }
+
+    tradeForm.onsubmit=async e=>{
+      e.preventDefault();saveButton.disabled=true;syncStatus.textContent='保存中…';
+      let savedUsdTicker='';
+      try{
+        if(mode==='bank'){
+          const name=bankName.value.trim(),balance=+bankBalance.value,date=bankDate.value,type=bankType.value;
+          if(!name||!date||bankBalance.value.trim()===''||!Number.isFinite(balance)||balance<0)throw new Error('銀行名・残高・基準日を入力してください');
+          const accountId=await getAccount(name,type);
+          if(cashScopes.some(s=>s.account_ids.includes(accountId)))throw new Error('この口座は「預り金・預金を登録」から更新してください');
+          const {error}=await db.from('balance_snapshots').insert({account_id:accountId,balance,recorded_at:date});if(error)throw error;
+        }else{
+          const date=tradeDate.value,acc=account.value,accType=accountType.value;
+          let nameV='',tickerV='',quantityV,valueV,unitPriceV,currencyV='JPY',feeV=null,exchangeRateV=null,transactionTypeV='buy';
+          if(!date)throw new Error('約定日を入力してください');
+          if(mode==='fund'){
+            nameV=fundName.value.trim();tickerV=nameV;
+            quantityV=calcFund();valueV=+amount.value;unitPriceV=+fundNav.value/10000;
+            if(!nameV||!quantityV||!Number.isFinite(valueV)||valueV<=0||!Number.isFinite(unitPriceV)||unitPriceV<=0)throw new Error('ファンド名・明細の口数・買付金額・約定基準価額を入力してください');
+          }else{
+            nameV=assetName.value.trim();tickerV=ticker.value.trim().toUpperCase();transactionTypeV=tradeType;
+            quantityV=Number(quantity.value);unitPriceV=Number(unitPrice.value);currencyV=currency.value;
+            feeV=optionalNumber(fees);exchangeRateV=currencyV==='USD'?optionalNumber(fx):1;
+            if(!nameV||!tickerV)throw new Error('銘柄名とティッカーを入力してください');
+            if(!/^[A-Z0-9.^:/-]{1,20}$/.test(tickerV))throw new Error('ティッカーは半角英数字で入力してください');
+            if(!Number.isFinite(quantityV)||!Number.isFinite(unitPriceV)||!(quantityV>0)||!(unitPriceV>0))throw new Error('数量と約定単価を入力してください');
+            if(feeV!==null&&(!Number.isFinite(feeV)||feeV<0)||exchangeRateV!==null&&(!Number.isFinite(exchangeRateV)||exchangeRateV<=0))throw new Error('手数料と為替の値を確認してください');
+            valueV=feeV==null||exchangeRateV==null?null:quantityV*unitPriceV*exchangeRateV+(transactionTypeV==='sell'?-feeV:feeV);
+          }
+          if(valueV!==null&&!Number.isFinite(valueV))throw new Error('取引額が計算範囲を超えています');
+          const accountId=await getAccount(acc,accType);const assetId=await getAsset(nameV,tickerV,mode,currencyV);
+          if(screenshotPositions.some(p=>p.account_id===accountId&&p.asset_id===assetId))throw new Error('この銘柄はスクショ残高で管理しています。スクショから現在残高を更新してください');
+          if(transactionTypeV==='sell'){
+            const held=holdings().find(h=>h.account===acc&&h.accountType===accType&&h.assetId===assetId);
+            if(!held||quantityV>held.quantity+0.00000001)throw new Error(`売却数量が保有数量（${held?.quantity||0}株）を超えています`);
+          }
+          const payload={account_id:accountId,asset_id:assetId,transaction_type:transactionTypeV,traded_at:date,quantity:quantityV,unit_price:unitPriceV,amount:valueV,fee:feeV,exchange_rate:exchangeRateV,data_source:'manual'};
+          const {error}=await db.from('transactions').insert(payload);if(error)throw error;
+          if(mode==='stock'&&currencyV==='USD'&&transactionTypeV==='buy')savedUsdTicker=tickerV;
+        }
+        e.target.reset();tradeDate.value=today();bankDate.value=today();bankName.value='三菱UFJ銀行';setTradeType('buy');currency.onchange();
+        setMode(mode);await loadCloud();sheet.hidden=true;go('homeView');
+        try{
+          await loadMarketCache();
+          if(savedUsdTicker)refreshOneTicker(savedUsdTicker);else maybeRefreshOnStartup();
+        }catch(error){console.warn('market cache',error)}
+      }catch(error){alert('保存できませんでした：'+error.message);syncStatus.textContent='同期エラー';}
+      finally{saveButton.disabled=false}
+    };
+
+    loginForm.onsubmit=async e=>{
+      e.preventDefault();loginButton.disabled=true;loginError.textContent='';
+      const {error}=await db.auth.signInWithPassword({email:loginEmail.value,password:loginPassword.value});
+      if(error){loginError.textContent='ログインできませんでした。メールアドレスとパスワードを確認してください。';loginButton.disabled=false}
+    };
+    signOut.onclick=()=>db.auth.signOut();
+    async function showSession(session){
+      const nextUser=session?.user||null;
+      if(currentUser?.id!==nextUser?.id){
+        cloudLoadVersion++;cloudLoaded=false;trades=[];bankBalances=[];importBatches=[];screenshotPositions=[];marketPrices=new Map();cashScopes=[];window.cashEntry?.close();window.screenshotEntry?.close();
+      }
+      currentUser=nextUser;loginView.hidden=!!currentUser;app.hidden=!currentUser;nav.hidden=!currentUser;
+      if(currentUser){
+        try{
+          await loadCloud();
+          try{await loadMarketCache()}catch(error){console.warn('market cache',error);marketStatusOverride='市場価格キャッシュを読み込めませんでした。';renderMarketStatus()}
+          maybeRefreshOnStartup();
+        }catch(error){syncStatus.textContent='読込エラー：'+error.message}
+      }else{
+        trades=[];bankBalances=[];cashScopes=[];importBatches=[];csvImportReady=false;cloudLoaded=false;marketPrices=new Map();marketBusy=false;marketStatusOverride='';loginButton.disabled=false;
+      }
+    }
+    window.cashEntry=window.AssetFlowCash.init({
+      getUser:()=>currentUser,
+      readAccounts:()=>selectAllRows(()=>db.from('accounts').select('id,name,institution,account_type',{count:'exact'}).order('id')),
+      readCash:async()=>{const {data,error}=await db.rpc('list_cash_observations');if(error)throw error;return data||[]},
+      saveCash:async payload=>{const {data,error}=await db.rpc('apply_cash_observation',payload);if(error)throw error;return data},
+      onSaved:loadCloud
+    });
+    window.screenshotEntry=window.AssetFlowScreenshots.init({
+      getUser:()=>currentUser,
+      readAccounts:()=>selectAllRows(()=>db.from('accounts').select('id,name,institution,account_type',{count:'exact'}).order('id')),
+      readAssets:()=>selectAllRows(()=>db.from('assets').select('id,name,ticker,asset_type,currency',{count:'exact'}).order('id')),
+      readPositions:async()=>{const {data,error}=await db.rpc('list_screenshot_positions');if(error)throw error;return data||[]},
+      resolveEntities:async(payload)=>{const {data,error}=await db.rpc('resolve_screenshot_entities',payload);if(error)throw error;return data},
+      save:async(payload)=>{const {data,error}=await db.rpc('apply_screenshot_positions',payload);if(error)throw error;return data},
+      readReview:async(account,currency)=>{const {data,error}=await db.from('reconciliation_reviews').select('input,revision').eq('account_id',account).eq('currency',currency).maybeSingle();if(error)throw error;return data},
+      saveReview:async(payload)=>{const {data,error}=await db.rpc('save_reconciliation_review',payload);if(error)throw error;return data},
+      advise:async(payload,signal)=>{
+        const {data}=await db.auth.getSession();if(!data.session)throw new Error('ログインしてください');
+        const response=await fetch(SUPABASE_URL+'/functions/v1/reconciliation-adviser',{method:'POST',body:JSON.stringify(payload),signal,cache:'no-store',headers:{Authorization:'Bearer '+data.session.access_token,apikey:SUPABASE_KEY,'Content-Type':'application/json'}});
+        if(!response.ok)throw new Error('AIへの相談は利用できません');return response.json();
+      },
+      readImage:async(file,signal)=>{
+        const {data}=await db.auth.getSession();if(!data.session)throw new Error('ログインしてください');
+        const response=await fetch(SUPABASE_URL+'/functions/v1/screenshot-ocr',{method:'POST',body:file,signal,cache:'no-store',
+          headers:{Authorization:'Bearer '+data.session.access_token,apikey:SUPABASE_KEY,'Content-Type':file.type}});
+        if(!response.ok){const error=new Error('画像読取を完了できませんでした');if(response.status===429)error.code='quota';throw error}return response.json();
+      },
+      onSaved:loadCloud
+    });
+    db.auth.onAuthStateChange((_event,session)=>setTimeout(()=>showSession(session),0));
+    db.auth.getSession().then(({data})=>showSession(data.session));
+  </script>
+</body>
+</html>
